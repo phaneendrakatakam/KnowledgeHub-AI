@@ -25,78 +25,80 @@ KnowledgeHub AI processes uploaded documents, converts their content into search
 ## How It Works
 
 ```text
-                 ┌─────────────────────┐
-                 │     User uploads    │
-                 │        PDF          │
-                 └──────────┬──────────┘
-                            │
-                            ▼
-                 ┌─────────────────────┐
-                 │    Text Extraction │
-                 │      PyMuPDF        │
-                 └──────────┬──────────┘
-                            │
-                            ▼
-                 ┌─────────────────────┐
-                 │   Text Chunking     │
-                 │  1000 chars /       │
-                 │  300 char overlap   │
-                 └──────────┬──────────┘
-                            │
-                            ▼
-                 ┌─────────────────────┐
-                 │ Gemini Embeddings   │
-                 │ embedding-001       │
-                 └──────────┬──────────┘
-                            │
-                            ▼
-                 ┌─────────────────────┐
-                 │ PostgreSQL +        │
-                 │ pgvector            │
-                 └──────────┬──────────┘
-                            │
-                    User asks question
-                            │
-                            ▼
-                 ┌─────────────────────┐
-                 │ Embed the question  │
-                 └──────────┬──────────┘
-                            │
-                            ▼
-                 ┌─────────────────────┐
-                 │ Vector similarity   │
-                 │ search              │
-                 └──────────┬──────────┘
-                            │
-                            ▼
-                 ┌─────────────────────┐
-                 │ Relevant document   │
-                 │ chunks              │
-                 └──────────┬──────────┘
-                            │
-                            ▼
-                 ┌─────────────────────┐
-                 │ Gemini generation   │
-                 │ using retrieved     │
-                 │ document context    │
-                 └──────────┬──────────┘
-                            │
-                            ▼
-                 ┌─────────────────────┐
-                 │ Grounded answer +   │
-                 │ source information  │
-                 └─────────────────────┘
++----------------------+
+|      User Uploads    |
+|         PDF          |
++----------+-----------+
+           |
+           v
++----------------------+
+|   Text Extraction    |
+|      PyMuPDF         |
++----------+-----------+
+           |
+           v
++----------------------+
+|    Text Chunking     |
+| 1000 chars / 300    |
+|    char overlap      |
++----------+-----------+
+           |
+           v
++----------------------+
+| Gemini Embeddings    |
+|    embedding-001     |
++----------+-----------+
+           |
+           v
++----------------------+
+| PostgreSQL + pgvector|
+|                      |
+| Documents            |
+| Chunks               |
+| Embeddings           |
++----------+-----------+
+           |
+           | User asks question
+           v
++----------------------+
+| Embed the Question   |
++----------+-----------+
+           |
+           v
++----------------------+
+| Vector Similarity    |
+|       Search         |
++----------+-----------+
+           |
+           v
++----------------------+
+| Relevant Document    |
+|       Chunks         |
++----------+-----------+
+           |
+           v
++----------------------+
+| Gemini Generation    |
+| Using Retrieved      |
+| Document Context     |
++----------+-----------+
+           |
+           v
++----------------------+
+| Grounded Answer +    |
+| Source Information   |
++----------------------+
 ```
 
 ## RAG Pipeline
 
-KnowledgeHub AI follows a basic retrieval-augmented generation pipeline:
+KnowledgeHub AI follows a retrieval-augmented generation pipeline.
 
-### 1. Document ingestion
+### 1. Document Ingestion
 
-When a PDF is uploaded, the backend saves it to the local `documents` directory and sends it through the existing ingestion pipeline.
+When a PDF is uploaded, the backend saves it to the local `documents` directory and sends it through the document ingestion pipeline.
 
-### 2. Text extraction
+### 2. Text Extraction
 
 PDF text is extracted using PyMuPDF.
 
@@ -106,15 +108,15 @@ The extracted text is divided into chunks of approximately 1000 characters with 
 
 The overlap helps preserve context between adjacent chunks.
 
-### 4. Embedding generation
+### 4. Embedding Generation
 
-Each chunk is converted into a vector embedding using Google's Gemini embedding model.
+Each document chunk is converted into a vector embedding using Google's Gemini embedding model.
 
-### 5. Vector storage
+### 5. Vector Storage
 
-The document metadata, text chunks, and embeddings are stored in PostgreSQL.
+Document metadata, text chunks, and embeddings are stored in PostgreSQL.
 
-The application uses pgvector similarity operations to retrieve the chunks most relevant to a user's question.
+The application uses pgvector similarity operations to retrieve chunks that are most relevant to a user's question.
 
 ### 6. Retrieval
 
@@ -122,7 +124,7 @@ When a user asks a question, the question is also converted into an embedding.
 
 The backend compares the question embedding against stored document embeddings and retrieves the closest matching chunks.
 
-### 7. Answer generation
+### 7. Answer Generation
 
 The retrieved chunks are supplied to Gemini as document context.
 
@@ -133,7 +135,7 @@ The generation prompt instructs the model to:
 * State when the requested information cannot be found
 * Provide a clear and concise answer
 
-### 8. Source attribution
+### 8. Source Attribution
 
 The response includes source information such as:
 
@@ -146,43 +148,45 @@ This makes it possible to understand which parts of the knowledge base were used
 ## Architecture
 
 ```text
-Frontend
-   │
-   │ HTTP requests
-   ▼
-FastAPI Backend
-   │
-   ├── Document Management
-   │      ├── Upload PDF
-   │      ├── List Documents
-   │      └── Delete Documents
-   │
-   ├── Chat Management
-   │      ├── Create Chat
-   │      ├── Load Chat
-   │      ├── Delete Chat
-   │      └── Store Messages
-   │
-   └── RAG Pipeline
-          │
-          ├── PDF Processing
-          ├── Embedding Generation
-          ├── Vector Search
-          └── Answer Generation
-                    │
-                    ▼
-              Gemini API
-
-FastAPI Backend
-       │
-       ▼
-PostgreSQL + pgvector
-       │
-       ├── Documents
-       ├── Document Chunks
-       ├── Embeddings
-       ├── Chat Sessions
-       └── Chat Messages
+                         +------------------+
+                         |      Frontend    |
+                         | HTML/CSS/JS      |
+                         +--------+---------+
+                                  |
+                                  | HTTP Requests
+                                  v
+                         +------------------+
+                         |   FastAPI API    |
+                         |     Backend      |
+                         +--------+---------+
+                                  |
+                +-----------------+-----------------+
+                |                 |                 |
+                v                 v                 v
+       +----------------+ +----------------+ +----------------+
+       |    Document    | |      Chat      | |      RAG       |
+       |   Management   | |   Management   | |    Pipeline    |
+       +-------+--------+ +-------+--------+ +-------+--------+
+               |                  |                  |
+               |                  |                  |
+               v                  v                  v
+       +----------------+ +----------------+ +----------------+
+       | Upload PDF     | | Create Chat    | | PDF Processing |
+       | List Documents | | Load Chat      | | Embeddings     |
+       | Delete Document| | Delete Chat    | | Vector Search  |
+       +----------------+ | Store Messages | | Generation     |
+                          +----------------+ +-------+--------+
+                                                    |
+                                                    v
+                                           +------------------+
+                                           | PostgreSQL       |
+                                           | + pgvector       |
+                                           +--------+---------+
+                                                    |
+                                                    v
+                                           +------------------+
+                                           | Gemini API       |
+                                           +------------------+
 ```
 
 ## Technology Stack
@@ -204,28 +208,31 @@ PostgreSQL + pgvector
 
 ```text
 KnowledgeHub-AI/
-│
-├── backend/
-│   ├── db.py
-│   ├── embedding.py
-│   ├── ingest.py
-│   ├── main.py
-│   ├── process_document.py
-│   ├── rag.py
-│   ├── search.py
-│   ├── .gitignore
-│   └── .env                  # Local only - not committed
-│
-├── documents/
-│   └── .gitkeep              # Uploaded PDFs remain local
-│
-├── frontend/
-│   └── index.html
-│
-├── tests/
-│
-├── .gitignore
-└── README.md
+|
++-- backend/
+|   |
+|   +-- db.py
+|   +-- embedding.py
+|   +-- ingest.py
+|   +-- main.py
+|   +-- process_document.py
+|   +-- rag.py
+|   +-- search.py
+|   +-- .gitignore
+|   +-- .env                  # Local only - not committed
+|   +-- __pycache__/          # Local only - not committed
+|
++-- documents/
+|   +-- .gitkeep              # Directory placeholder
+|   +-- Uploaded PDFs         # Local only - not committed
+|
++-- frontend/
+|   +-- index.html
+|
++-- tests/                    # Reserved for automated tests
+|
++-- .gitignore
++-- README.md
 ```
 
 ## Environment Variables
@@ -256,7 +263,7 @@ The repository's `.gitignore` files are configured to keep local credentials, Py
 
 ## Running Locally
 
-### 1. Clone the repository
+### 1. Clone the Repository
 
 ```bash
 git clone https://github.com/phaneendrakatakam/KnowledgeHub-AI.git
@@ -273,7 +280,7 @@ knowledgehub
 
 The database must also have the pgvector extension available because document embeddings are stored and queried as vectors.
 
-### 3. Configure environment variables
+### 3. Configure Environment Variables
 
 Create:
 
@@ -283,7 +290,7 @@ backend/.env
 
 and add the required Gemini and PostgreSQL configuration.
 
-### 4. Start the backend
+### 4. Start the Backend
 
 From the `backend` directory:
 
@@ -298,7 +305,7 @@ The FastAPI backend will run locally on:
 http://127.0.0.1:8000
 ```
 
-### 5. Open the frontend
+### 5. Open the Frontend
 
 Open:
 
@@ -394,7 +401,7 @@ Deletes a chat session and its stored messages.
 6. Wait for document ingestion to complete.
 7. Ask a question about the uploaded document.
 8. KnowledgeHub retrieves relevant chunks.
-9. Gemini generates an answer using those chunks.
+9. Gemini generates an answer using the retrieved context.
 10. The UI displays the answer together with source information.
 
 ## Current Limitations
@@ -403,8 +410,9 @@ Deletes a chat session and its stored messages.
 * Uploaded documents are stored locally and intentionally excluded from Git.
 * API credentials are configured locally through environment variables.
 * The current frontend is a lightweight HTML/CSS/JavaScript interface.
-* Retrieval quality depends on the quality of document extraction, chunking, embeddings, and similarity threshold configuration.
+* Retrieval quality depends on document extraction, chunking, embeddings, and similarity configuration.
 * The current project does not yet include a production deployment configuration.
+* Automated tests have not yet been added.
 
 ## Testing
 
@@ -424,6 +432,8 @@ The application has been manually tested during development for:
 * Frontend/backend communication
 * Browser refresh behavior
 
+The `tests/` directory is reserved for automated tests that will be added in a later development stage.
+
 ## Security Notes
 
 The repository intentionally excludes:
@@ -440,7 +450,7 @@ If an API key is accidentally committed to a public repository, revoke and repla
 
 ## Roadmap
 
-Planned improvements include:
+Future improvements include:
 
 * Automated tests
 * Dependency management
@@ -457,11 +467,11 @@ Planned improvements include:
 
 ## Project Status
 
-**Current status: Working prototype / V1**
+**Current status: Working Prototype / V1**
 
-The core document ingestion, vector retrieval, RAG answering, document management, and chat history functionality is implemented and manually tested.
+The core document ingestion, vector retrieval, RAG answering, document management, and chat history functionality has been implemented and manually tested.
 
-Future iterations will focus on reliability, evaluation, deployment, security, and production-readiness.
+The project is now moving toward the next stage of development, focusing on reliability, evaluation, testing, deployment, security, and production-readiness.
 
 ## Author
 
