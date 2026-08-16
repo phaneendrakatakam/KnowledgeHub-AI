@@ -6,21 +6,59 @@ KnowledgeHub AI processes uploaded documents, converts their content into search
 
 ## Features
 
-* Upload PDF documents through the web interface
-* Automatically extract text from uploaded PDFs
-* Split documents into overlapping text chunks
-* Generate vector embeddings for document chunks
-* Store document chunks and embeddings in PostgreSQL with pgvector
-* Perform similarity-based document retrieval
-* Generate answers using retrieved document context
-* Return source document, chunk, and relevance information with answers
-* Maintain multiple chat sessions
-* Load previous conversations from chat history
-* Create and delete chat sessions
-* View uploaded documents
-* Delete documents and their indexed chunks
-* Reject unsupported file types during upload
-* Keep API credentials and local documents outside the public repository
+- Upload PDF documents through the web interface
+- Automatically extract text from uploaded PDFs
+- Split documents into overlapping text chunks
+- Generate vector embeddings for document chunks
+- Store document chunks and embeddings in PostgreSQL with pgvector
+- Perform similarity-based document retrieval
+- Generate answers using retrieved document context
+- Return source document, chunk, and relevance information with answers
+- Maintain multiple chat sessions
+- Load previous conversations from chat history
+- Create and delete chat sessions
+- View uploaded documents
+- Delete documents and their indexed chunks
+- Reject unsupported file types during upload
+- Return grounded fallback responses when relevant information is not available
+- Keep API credentials and local documents outside the public repository
+- Automated testing of core document processing, retrieval, and RAG functionality
+
+## Screenshots
+
+### KnowledgeHub AI Interface
+
+The V1 web interface provides document management, chat history, PDF upload, and document question-answering functionality.
+
+![KnowledgeHub AI Interface](screenshots/KnowledgeHub%20AI.png)
+
+### PDF Upload and Ingestion
+
+PDF documents can be uploaded through the web interface and automatically processed into the knowledge base.
+
+![Successful PDF Ingestion](screenshots/Successful%20PDF%20ingestion.png)
+
+### RAG Question Answering
+
+KnowledgeHub retrieves relevant document chunks and generates an answer grounded in the retrieved context.
+
+Each answer can include the source document, chunk index, and relevance score used during retrieval.
+
+![RAG Question Answering](screenshots/Continuous%20Delivery%20vs%20Deployment.png)
+
+### Grounded Response
+
+KnowledgeHub is designed to avoid answering questions when sufficiently relevant information cannot be found in the provided documents.
+
+![Grounded Response](screenshots/CEO%20of%20Microsoft%20rejection.png)
+
+### Automated Testing
+
+Core document processing, retrieval, and RAG functionality is covered by automated tests using pytest.
+
+![Automated Tests](screenshots/16%20passed.png)
+
+**V1 automated test result: 16/16 passed.**
 
 ## How It Works
 
@@ -39,14 +77,14 @@ KnowledgeHub AI processes uploaded documents, converts their content into search
            v
 +----------------------+
 |    Text Chunking     |
-| 1000 chars / 300    |
+| 1000 chars / 300     |
 |    char overlap      |
 +----------+-----------+
            |
            v
 +----------------------+
 | Gemini Embeddings    |
-|    embedding-001     |
+| embedding-001        |
 +----------+-----------+
            |
            v
@@ -124,24 +162,26 @@ When a user asks a question, the question is also converted into an embedding.
 
 The backend compares the question embedding against stored document embeddings and retrieves the closest matching chunks.
 
+A relevance threshold is applied so that insufficiently relevant results can be rejected instead of being supplied to the generation model.
+
 ### 7. Answer Generation
 
 The retrieved chunks are supplied to Gemini as document context.
 
 The generation prompt instructs the model to:
 
-* Answer only from the supplied document context
-* Avoid inventing information
-* State when the requested information cannot be found
-* Provide a clear and concise answer
+- Answer only from the supplied document context
+- Avoid inventing or assuming information
+- State when the requested information cannot be found
+- Provide a clear and concise answer
 
 ### 8. Source Attribution
 
 The response includes source information such as:
 
-* Document filename
-* Chunk index
-* Relevance score
+- Document filename
+- Chunk index
+- Relevance score
 
 This makes it possible to understand which parts of the knowledge base were used to generate the answer.
 
@@ -149,8 +189,8 @@ This makes it possible to understand which parts of the knowledge base were used
 
 ```text
                          +------------------+
-                         |      Frontend    |
-                         | HTML/CSS/JS      |
+                         |     Frontend     |
+                         |   HTML/CSS/JS    |
                          +--------+---------+
                                   |
                                   | HTTP Requests
@@ -168,7 +208,6 @@ This makes it possible to understand which parts of the knowledge base were used
        |   Management   | |   Management   | |    Pipeline    |
        +-------+--------+ +-------+--------+ +-------+--------+
                |                  |                  |
-               |                  |                  |
                v                  v                  v
        +----------------+ +----------------+ +----------------+
        | Upload PDF     | | Create Chat    | | PDF Processing |
@@ -177,32 +216,30 @@ This makes it possible to understand which parts of the knowledge base were used
        +----------------+ | Store Messages | | Generation     |
                           +----------------+ +-------+--------+
                                                     |
-                                                    v
-                                           +------------------+
-                                           | PostgreSQL       |
-                                           | + pgvector       |
-                                           +--------+---------+
-                                                    |
-                                                    v
-                                           +------------------+
-                                           | Gemini API       |
-                                           +------------------+
+                              +---------------------+---------------------+
+                              |                                           |
+                              v                                           v
+                     +------------------+                        +------------------+
+                     | PostgreSQL       |                        |    Gemini API    |
+                     | + pgvector       |                        +------------------+
+                     +------------------+
 ```
 
 ## Technology Stack
 
-| Component                 | Technology            |
-| ------------------------- | --------------------- |
-| Frontend                  | HTML, CSS, JavaScript |
-| Backend API               | FastAPI               |
-| Language                  | Python                |
-| Database                  | PostgreSQL            |
-| Vector Search             | pgvector              |
-| Embeddings                | Gemini Embeddings     |
-| Generation                | Gemini                |
-| PDF Processing            | PyMuPDF               |
-| Database Driver           | psycopg               |
-| Environment Configuration | python-dotenv         |
+| Component | Technology |
+| --- | --- |
+| Frontend | HTML, CSS, JavaScript |
+| Backend API | FastAPI |
+| Language | Python |
+| Database | PostgreSQL |
+| Vector Search | pgvector |
+| Embeddings | Gemini Embeddings |
+| Generation | Gemini |
+| PDF Processing | PyMuPDF |
+| Database Driver | psycopg |
+| Environment Configuration | python-dotenv |
+| Testing | pytest |
 
 ## Project Structure
 
@@ -229,7 +266,17 @@ KnowledgeHub-AI/
 +-- frontend/
 |   +-- index.html
 |
-+-- tests/                    # Reserved for automated tests
++-- tests/
+|   +-- test_process_document.py
+|   +-- test_rag.py
+|   +-- test_search.py
+|
++-- screenshots/
+|   +-- KnowledgeHub AI.png
+|   +-- Successful PDF ingestion.png
+|   +-- Continuous Delivery vs Deployment.png
+|   +-- CEO of Microsoft rejection.png
+|   +-- 16 passed.png
 |
 +-- .gitignore
 +-- README.md
@@ -296,7 +343,7 @@ From the `backend` directory:
 
 ```bash
 cd backend
-uvicorn main:app --reload
+python -m uvicorn main:app --reload
 ```
 
 The FastAPI backend will run locally on:
@@ -400,78 +447,134 @@ Deletes a chat session and its stored messages.
 5. Upload a PDF.
 6. Wait for document ingestion to complete.
 7. Ask a question about the uploaded document.
-8. KnowledgeHub retrieves relevant chunks.
-9. Gemini generates an answer using the retrieved context.
-10. The UI displays the answer together with source information.
-
-## Current Limitations
-
-* PDF is currently the supported upload format.
-* Uploaded documents are stored locally and intentionally excluded from Git.
-* API credentials are configured locally through environment variables.
-* The current frontend is a lightweight HTML/CSS/JavaScript interface.
-* Retrieval quality depends on document extraction, chunking, embeddings, and similarity configuration.
-* The current project does not yet include a production deployment configuration.
-* Automated tests have not yet been added.
+8. KnowledgeHub embeds the question and retrieves relevant document chunks.
+9. Retrieved chunks that meet the relevance threshold are supplied to Gemini.
+10. Gemini generates an answer using the retrieved document context.
+11. The UI displays the answer together with source and relevance information.
 
 ## Testing
 
-The application has been manually tested during development for:
+KnowledgeHub AI V1 includes both manual functional testing and automated unit testing.
 
-* PDF upload
-* Document ingestion
-* Document listing
-* Document deletion
-* Question answering
-* Source display
-* Chat creation
-* Chat history
-* Existing chat loading
-* Chat deletion
-* Unsupported file upload handling
-* Frontend/backend communication
-* Browser refresh behavior
+### Automated Testing
 
-The `tests/` directory is reserved for automated tests that will be added in a later development stage.
+The V1 automated test suite contains **16 tests** covering the core document-processing, retrieval, and RAG functionality.
+
+The test suite covers areas including:
+
+- Empty and whitespace-only document handling
+- PDF text extraction
+- Document chunk creation
+- Chunk size and overlap behavior
+- Document processing
+- Embedding flow using mocks
+- Search result handling
+- Custom search limits
+- Empty search results
+- RAG fallback behavior
+- Relevance filtering
+- Prompt and document-context construction
+- Source attribution
+- Multiple relevant sources
+
+External dependencies are mocked where appropriate so application logic can be tested without making unnecessary Gemini API or database calls.
+
+Run the complete test suite from the project root:
+
+```bash
+python -m pytest -v
+```
+
+Current V1 result:
+
+```text
+16 passed
+```
+
+### Manual Testing
+
+The application has also been manually tested for:
+
+- PDF upload
+- Document ingestion
+- Document listing
+- Document deletion
+- Question answering
+- Source and relevance display
+- Chat creation
+- Chat history
+- Existing chat loading
+- Chat deletion
+- Unsupported file upload handling
+- Frontend/backend communication
+- Browser refresh behavior
+- Grounded fallback behavior for questions not supported by the uploaded documents
 
 ## Security Notes
 
 The repository intentionally excludes:
 
-* API keys
-* `.env` files
-* Uploaded documents
-* Python cache files
-* Other local-only files
+- API keys
+- `.env` files
+- Uploaded documents
+- Python cache files
+- Other local-only files
 
 Never add credentials directly to the source code.
 
 If an API key is accidentally committed to a public repository, revoke and replace the exposed credential immediately.
 
-## Roadmap
+## Current Limitations
 
-Future improvements include:
+- PDF is currently the supported upload format.
+- Uploaded documents are stored locally and intentionally excluded from Git.
+- API credentials are configured locally through environment variables.
+- The current frontend is a lightweight HTML/CSS/JavaScript interface.
+- Retrieval quality depends on document extraction, chunking, embeddings, and similarity configuration.
+- The application currently runs locally and does not include a production deployment configuration.
+- Markdown returned by the generation model is currently displayed as plain text by the frontend.
 
-* Automated tests
-* Dependency management
-* Improved frontend experience
-* Better error handling
-* More robust retrieval evaluation
-* Authentication and authorization
-* Production deployment
-* Containerization
-* Observability and application monitoring
-* Support for additional document formats
-* Improved document and chat management
-* CI/CD automation
+## V2 Roadmap
+
+Potential V2 improvements include:
+
+- Dependency management
+- Improved frontend experience
+- Markdown rendering for generated answers
+- Better error handling
+- More robust retrieval evaluation
+- Improved retrieval and chunking strategies
+- Conversation-aware retrieval
+- Authentication and authorization
+- Support for additional document formats
+- Improved document and chat management
+- Expanded automated test coverage
+
+Longer-term improvements include containerization, observability, CI/CD automation, and production deployment.
 
 ## Project Status
 
-**Current status: Working Prototype / V1**
+**KnowledgeHub AI V1 — Complete ✅**
 
-The core document ingestion, vector retrieval, RAG answering, document management, and chat history functionality has been implemented and manually tested.
+V1 includes:
 
-The project is now moving toward the next stage of development, focusing on reliability, evaluation, testing, deployment, security, and production-readiness.
+- PDF ingestion and text extraction
+- Overlapping document chunking
+- Gemini vector embeddings
+- PostgreSQL + pgvector storage
+- Semantic similarity search
+- Retrieval-Augmented Generation
+- Relevance filtering
+- Grounded answer generation
+- Source attribution with chunk and relevance information
+- Document management
+- Multiple chat sessions and chat history
+- Manual functional testing
+- Automated unit testing
+
+**Automated test suite: 16/16 passed.**
+
+V1 is feature-complete and serves as the stable foundation for future KnowledgeHub AI versions.
 
 ## Author
 
