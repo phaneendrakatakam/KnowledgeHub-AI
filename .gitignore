@@ -1,0 +1,34 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Virtual environments
+venv/
+.venv/
+env/
+
+# Environment variables / secrets
+.env
+.env.*
+
+# Keep the example environment file
+!.env.example
+
+# IDE / editor files
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.temp
+# Local uploaded documents
+documents/*
+!documents/.gitkeep

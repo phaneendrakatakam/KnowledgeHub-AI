@@ -1,0 +1,2196 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>KnowledgeHub AI</title>
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            background: #f5f7fb;
+            color: #1f2937;
+        }
+
+        .app {
+            max-width: 1200px;
+            margin: 0 auto;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            padding: 24px 20px;
+            background: white;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 26px;
+        }
+
+        header p {
+            margin: 6px 0 0;
+            color: #6b7280;
+            font-size: 14px;
+        }
+
+        .main-layout {
+            display: flex;
+            flex: 1;
+            min-height: calc(100vh - 100px);
+        }
+
+        /* ================================
+           CHAT HISTORY SIDEBAR
+           ================================ */
+
+        .sidebar {
+            width: 270px;
+            background: #ffffff;
+            border-right: 1px solid #e5e7eb;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+        }
+
+        .new-chat-button {
+            width: 100%;
+            padding: 12px 14px;
+            border: none;
+            border-radius: 10px;
+            background: #2563eb;
+            color: white;
+            font-size: 14px;
+            cursor: pointer;
+            margin-bottom: 16px;
+        }
+
+        .new-chat-button:hover {
+            background: #1d4ed8;
+        }
+
+        .history-title {
+            font-size: 13px;
+            font-weight: bold;
+            color: #6b7280;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+
+        #chatHistory {
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .chat-history-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 6px;
+        }
+
+        .chat-history-button {
+            flex: 1;
+            text-align: left;
+            padding: 10px 12px;
+            border: none;
+            border-radius: 9px;
+            background: transparent;
+            color: #374151;
+            cursor: pointer;
+            font-size: 14px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .chat-history-button:hover {
+            background: #f3f4f6;
+        }
+
+        .chat-history-button.active {
+            background: #eff6ff;
+            color: #1d4ed8;
+            font-weight: 600;
+        }
+
+        .delete-chat-button {
+            border: none;
+            background: transparent;
+            color: #9ca3af;
+            cursor: pointer;
+            padding: 6px;
+            border-radius: 6px;
+        }
+
+        .delete-chat-button:hover {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .empty-history {
+            color: #9ca3af;
+            font-size: 13px;
+            padding: 10px 4px;
+        }
+
+        /* ================================
+           CONTENT AREA
+           ================================ */
+
+        .content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .upload-section {
+            margin: 20px;
+            padding: 20px;
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 14px;
+        }
+
+        .upload-section h2 {
+            margin-top: 0;
+            font-size: 18px;
+        }
+
+        .upload-row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        #fileInput {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #d1d5db;
+            border-radius: 10px;
+            background: white;
+        }
+
+        #uploadButton {
+            padding: 11px 18px;
+            border: none;
+            border-radius: 10px;
+            background: #16a34a;
+            color: white;
+            cursor: pointer;
+        }
+
+        #uploadButton:hover {
+            background: #15803d;
+        }
+
+        #uploadButton:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+        }
+
+        #uploadStatus {
+            margin-top: 12px;
+            font-size: 14px;
+        }
+
+        .upload-success {
+            color: #15803d;
+        }
+
+        .upload-error {
+            color: #dc2626;
+        }
+
+        /* ================================
+           DOCUMENT LIBRARY
+           ================================ */
+
+        .documents-section {
+            margin: 20px;
+            padding: 20px;
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 14px;
+        }
+
+        .documents-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+
+        .documents-header h2 {
+            margin: 0;
+            font-size: 18px;
+        }
+
+        .refresh-documents-button {
+            padding: 8px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            background: white;
+            color: #374151;
+            cursor: pointer;
+            font-size: 13px;
+        }
+
+        .refresh-documents-button:hover {
+            background: #f3f4f6;
+        }
+
+        .documents-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .document-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 12px;
+            border: 1px solid #e5e7eb;
+            border-radius: 10px;
+            background: #fafafa;
+        }
+
+        .document-info {
+            min-width: 0;
+        }
+
+        .document-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: #374151;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .document-date {
+            margin-top: 4px;
+            font-size: 12px;
+            color: #9ca3af;
+        }
+
+        .delete-document-button {
+            flex-shrink: 0;
+            padding: 8px 12px;
+            border: none;
+            border-radius: 8px;
+            background: #fee2e2;
+            color: #dc2626;
+            cursor: pointer;
+            font-size: 13px;
+        }
+
+        .delete-document-button:hover {
+            background: #fecaca;
+        }
+
+        .delete-document-button:disabled {
+            background: #e5e7eb;
+            color: #9ca3af;
+            cursor: not-allowed;
+        }
+
+        .empty-documents {
+            padding: 12px 4px;
+            color: #9ca3af;
+            font-size: 13px;
+        }
+
+        /* ================================
+           CHAT
+           ================================ */
+
+        #chat {
+            padding: 10px 20px 120px;
+        }
+
+        .welcome {
+            text-align: center;
+            margin-top: 70px;
+            color: #6b7280;
+        }
+
+        .welcome h2 {
+            color: #111827;
+            margin-bottom: 8px;
+        }
+
+        .message {
+            margin-bottom: 24px;
+        }
+
+        .user-message {
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .user-bubble {
+            max-width: 75%;
+            background: #2563eb;
+            color: white;
+            padding: 12px 16px;
+            border-radius: 16px 16px 4px 16px;
+            line-height: 1.5;
+        }
+
+        .assistant-message {
+            display: flex;
+            justify-content: flex-start;
+        }
+
+        .assistant-bubble {
+            max-width: 80%;
+            background: white;
+            padding: 16px;
+            border-radius: 16px 16px 16px 4px;
+            border: 1px solid #e5e7eb;
+            line-height: 1.6;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        }
+
+        .sources {
+            margin-top: 14px;
+            padding-top: 12px;
+            border-top: 1px solid #e5e7eb;
+            font-size: 13px;
+            color: #6b7280;
+        }
+
+        .source {
+            margin-top: 6px;
+        }
+
+        .source strong {
+            color: #374151;
+        }
+
+        /* ================================
+           INPUT
+           ================================ */
+
+        .input-area {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(245, 247, 251, 0.96);
+            border-top: 1px solid #e5e7eb;
+            padding: 16px 20px;
+        }
+
+        .input-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            gap: 10px;
+            padding-left: 270px;
+        }
+
+        #question {
+            flex: 1;
+            padding: 14px 16px;
+            border: 1px solid #d1d5db;
+            border-radius: 12px;
+            font-size: 15px;
+            outline: none;
+        }
+
+        #question:focus {
+            border-color: #2563eb;
+        }
+
+        #askButton {
+            padding: 0 22px;
+            border: none;
+            border-radius: 12px;
+            background: #2563eb;
+            color: white;
+            font-size: 15px;
+            cursor: pointer;
+        }
+
+        #askButton:hover {
+            background: #1d4ed8;
+        }
+
+        #askButton:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+        }
+
+        .loading {
+            color: #6b7280;
+            font-style: italic;
+        }
+
+        /* ================================
+           MOBILE
+           ================================ */
+
+        @media (max-width: 800px) {
+
+            .main-layout {
+                display: block;
+            }
+
+            .sidebar {
+                width: 100%;
+                border-right: none;
+                border-bottom: 1px solid #e5e7eb;
+                max-height: 220px;
+            }
+
+            #chatHistory {
+                max-height: 120px;
+            }
+
+            .input-container {
+                padding-left: 0;
+            }
+
+        }
+
+        @media (max-width: 600px) {
+
+            .upload-row {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            #uploadButton {
+                width: 100%;
+            }
+
+            .user-bubble,
+            .assistant-bubble {
+                max-width: 90%;
+            }
+
+            #askButton {
+                padding: 0 16px;
+            }
+
+            .document-item {
+                align-items: flex-start;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+<div class="app">
+
+
+    <header>
+
+        <h1>
+            KnowledgeHub AI
+        </h1>
+
+        <p>
+            Ask questions about your uploaded documents.
+        </p>
+
+    </header>
+
+
+    <div class="main-layout">
+
+
+        <!-- CHAT HISTORY -->
+
+        <aside class="sidebar">
+
+            <button
+                id="newChatButton"
+                class="new-chat-button"
+            >
+                + New Chat
+            </button>
+
+            <div class="history-title">
+                Chat History
+            </div>
+
+            <div id="chatHistory">
+
+                <div class="empty-history">
+                    Loading chats...
+                </div>
+
+            </div>
+
+        </aside>
+
+
+        <!-- MAIN CONTENT -->
+
+        <div class="content">
+
+
+            <!-- UPLOAD -->
+
+            <section class="upload-section">
+
+                <h2>
+                    Upload Document
+                </h2>
+
+                <div class="upload-row">
+
+                    <input
+                        id="fileInput"
+                        type="file"
+                        accept=".pdf,application/pdf"
+                    >
+
+                    <button id="uploadButton">
+                        Upload
+                    </button>
+
+                </div>
+
+                <div id="uploadStatus"></div>
+
+            </section>
+
+
+            <!-- DOCUMENT LIBRARY -->
+
+            <section class="documents-section">
+
+                <div class="documents-header">
+
+                    <h2>
+                        Documents
+                    </h2>
+
+                    <button
+                        id="refreshDocumentsButton"
+                        class="refresh-documents-button"
+                    >
+                        Refresh
+                    </button>
+
+                </div>
+
+                <div
+                    id="documentsList"
+                    class="documents-list"
+                >
+
+                    <div class="empty-documents">
+                        Loading documents...
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- CHAT -->
+
+            <main id="chat">
+
+                <div
+                    class="welcome"
+                    id="welcome"
+                >
+
+                    <h2>
+                        Welcome to KnowledgeHub
+                    </h2>
+
+                    <p>
+                        Upload a PDF and ask questions about it.
+                    </p>
+
+                </div>
+
+            </main>
+
+
+        </div>
+
+
+    </div>
+
+
+</div>
+
+
+<div class="input-area">
+
+    <div class="input-container">
+
+        <input
+            id="question"
+            type="text"
+            placeholder="Ask a question..."
+            autocomplete="off"
+        >
+
+        <button id="askButton">
+            Ask
+        </button>
+
+    </div>
+
+</div>
+
+
+<script>
+
+
+const API_URL =
+    "http://127.0.0.1:8000";
+
+
+const questionInput =
+    document.getElementById("question");
+
+const askButton =
+    document.getElementById("askButton");
+
+const chat =
+    document.getElementById("chat");
+
+const fileInput =
+    document.getElementById("fileInput");
+
+const uploadButton =
+    document.getElementById("uploadButton");
+
+const uploadStatus =
+    document.getElementById("uploadStatus");
+
+const chatHistory =
+    document.getElementById("chatHistory");
+
+const newChatButton =
+    document.getElementById("newChatButton");
+
+const documentsList =
+    document.getElementById("documentsList");
+
+const refreshDocumentsButton =
+    document.getElementById(
+        "refreshDocumentsButton"
+    );
+
+
+/* =========================================
+   CURRENT CHAT SESSION
+   ========================================= */
+
+
+let currentSessionId =
+    localStorage.getItem(
+        "knowledgehub_current_session"
+    );
+
+
+function saveCurrentSession() {
+
+    if (currentSessionId !== null) {
+
+        localStorage.setItem(
+            "knowledgehub_current_session",
+            String(currentSessionId)
+        );
+
+    }
+
+}
+
+
+function clearCurrentSession() {
+
+    currentSessionId = null;
+
+    localStorage.removeItem(
+        "knowledgehub_current_session"
+    );
+
+}
+
+
+/* =========================================
+   CHAT HISTORY
+   ========================================= */
+
+
+async function loadChatHistory() {
+
+    try {
+
+        const response =
+            await fetch(
+                `${API_URL}/chats`
+            );
+
+        if (!response.ok) {
+
+            throw new Error(
+                `Server returned ${response.status}`
+            );
+
+        }
+
+        const data =
+            await response.json();
+
+        renderChatHistory(
+            data.chats || []
+        );
+
+    }
+    catch (error) {
+
+        console.error(
+            "Unable to load chat history:",
+            error
+        );
+
+        chatHistory.innerHTML = `
+            <div class="empty-history">
+                Unable to load chat history.
+            </div>
+        `;
+
+    }
+
+}
+
+
+function renderChatHistory(chats) {
+
+    chatHistory.innerHTML = "";
+
+    if (
+        !chats ||
+        chats.length === 0
+    ) {
+
+        chatHistory.innerHTML = `
+            <div class="empty-history">
+                No previous chats.
+            </div>
+        `;
+
+        return;
+
+    }
+
+
+    chats.forEach(
+        chatItem => {
+
+            const wrapper =
+                document.createElement("div");
+
+            wrapper.className =
+                "chat-history-item";
+
+
+            const button =
+                document.createElement("button");
+
+            button.className =
+                "chat-history-button";
+
+
+            if (
+                Number(chatItem.id) ===
+                Number(currentSessionId)
+            ) {
+
+                button.classList.add(
+                    "active"
+                );
+
+            }
+
+
+            button.textContent =
+                chatItem.title ||
+                "New Chat";
+
+
+            button.title =
+                chatItem.title ||
+                "New Chat";
+
+
+            button.addEventListener(
+                "click",
+                () => {
+
+                    loadChat(
+                        chatItem.id
+                    );
+
+                }
+            );
+
+
+            const deleteButton =
+                document.createElement("button");
+
+            deleteButton.className =
+                "delete-chat-button";
+
+            deleteButton.textContent =
+                "×";
+
+            deleteButton.title =
+                "Delete chat";
+
+
+            deleteButton.addEventListener(
+                "click",
+                event => {
+
+                    event.stopPropagation();
+
+                    deleteChat(
+                        chatItem.id
+                    );
+
+                }
+            );
+
+
+            wrapper.appendChild(
+                button
+            );
+
+            wrapper.appendChild(
+                deleteButton
+            );
+
+            chatHistory.appendChild(
+                wrapper
+            );
+
+        }
+    );
+
+}
+
+
+/* =========================================
+   CREATE NEW CHAT
+   ========================================= */
+
+
+async function createNewChat() {
+
+    try {
+
+        const response =
+            await fetch(
+                `${API_URL}/chats`,
+                {
+                    method: "POST"
+                }
+            );
+
+        if (!response.ok) {
+
+            throw new Error(
+                `Server returned ${response.status}`
+            );
+
+        }
+
+        const data =
+            await response.json();
+
+
+        currentSessionId =
+            data.id;
+
+        saveCurrentSession();
+
+
+        clearChat();
+
+        await loadChatHistory();
+
+        questionInput.focus();
+
+    }
+    catch (error) {
+
+        console.error(
+            "Unable to create chat:",
+            error
+        );
+
+        alert(
+            "Unable to create a new chat. " +
+            "Please make sure the backend is running."
+        );
+
+    }
+
+}
+
+
+/* =========================================
+   LOAD EXISTING CHAT
+   ========================================= */
+
+
+async function loadChat(sessionId) {
+
+    try {
+
+        const response =
+            await fetch(
+                `${API_URL}/chats/${sessionId}`
+            );
+
+        if (!response.ok) {
+
+            throw new Error(
+                `Server returned ${response.status}`
+            );
+
+        }
+
+        const data =
+            await response.json();
+
+
+        if (
+            data.success === false
+        ) {
+
+            alert(
+                data.message ||
+                "Unable to load chat."
+            );
+
+            return;
+
+        }
+
+
+        currentSessionId =
+            data.id;
+
+        saveCurrentSession();
+
+
+        clearChat();
+
+
+        if (
+            data.messages &&
+            data.messages.length > 0
+        ) {
+
+            data.messages.forEach(
+                message => {
+
+                    addUserMessage(
+                        message.question
+                    );
+
+                    addAssistantMessage({
+
+                        answer:
+                            message.answer,
+
+                        sources:
+                            message.sources || []
+
+                    });
+
+                }
+            );
+
+        }
+        else {
+
+            showWelcome();
+
+        }
+
+
+        await loadChatHistory();
+
+        questionInput.focus();
+
+    }
+    catch (error) {
+
+        console.error(
+            "Unable to load chat:",
+            error
+        );
+
+        alert(
+            "Unable to load this conversation."
+        );
+
+    }
+
+}
+
+
+/* =========================================
+   DELETE CHAT
+   ========================================= */
+
+
+async function deleteChat(sessionId) {
+
+    const confirmed =
+        confirm(
+            "Delete this chat and all its messages?"
+        );
+
+    if (!confirmed) {
+
+        return;
+
+    }
+
+
+    try {
+
+        const response =
+            await fetch(
+                `${API_URL}/chats/${sessionId}`,
+                {
+                    method: "DELETE"
+                }
+            );
+
+        if (!response.ok) {
+
+            throw new Error(
+                `Server returned ${response.status}`
+            );
+
+        }
+
+
+        const data =
+            await response.json();
+
+
+        if (!data.success) {
+
+            alert(
+                data.message ||
+                "Unable to delete chat."
+            );
+
+            return;
+
+        }
+
+
+        if (
+            Number(currentSessionId) ===
+            Number(sessionId)
+        ) {
+
+            clearCurrentSession();
+
+            clearChat();
+
+        }
+
+
+        await loadChatHistory();
+
+    }
+    catch (error) {
+
+        console.error(
+            "Unable to delete chat:",
+            error
+        );
+
+        alert(
+            "Unable to delete chat."
+        );
+
+    }
+
+}
+
+
+/* =========================================
+   RESTORE CURRENT CHAT AFTER REFRESH
+   ========================================= */
+
+
+async function restoreCurrentChat() {
+
+    if (!currentSessionId) {
+
+        return;
+
+    }
+
+
+    try {
+
+        const response =
+            await fetch(
+                `${API_URL}/chats/${currentSessionId}`
+            );
+
+
+        if (!response.ok) {
+
+            throw new Error(
+                `Server returned ${response.status}`
+            );
+
+        }
+
+
+        const data =
+            await response.json();
+
+
+        if (
+            data.success === false
+        ) {
+
+            clearCurrentSession();
+
+            clearChat();
+
+            return;
+
+        }
+
+
+        currentSessionId =
+            data.id;
+
+        saveCurrentSession();
+
+
+        clearChat();
+
+
+        if (
+            data.messages &&
+            data.messages.length > 0
+        ) {
+
+            data.messages.forEach(
+                message => {
+
+                    addUserMessage(
+                        message.question
+                    );
+
+                    addAssistantMessage({
+
+                        answer:
+                            message.answer,
+
+                        sources:
+                            message.sources || []
+
+                    });
+
+                }
+            );
+
+        }
+        else {
+
+            showWelcome();
+
+        }
+
+
+        await loadChatHistory();
+
+    }
+    catch (error) {
+
+        console.error(
+            "Unable to restore current chat:",
+            error
+        );
+
+        clearCurrentSession();
+
+        clearChat();
+
+    }
+
+}
+
+
+/* =========================================
+   DOCUMENT MANAGEMENT
+   ========================================= */
+
+
+async function loadDocuments() {
+
+    documentsList.innerHTML = `
+        <div class="empty-documents">
+            Loading documents...
+        </div>
+    `;
+
+
+    try {
+
+        const response =
+            await fetch(
+                `${API_URL}/documents`
+            );
+
+
+        if (!response.ok) {
+
+            throw new Error(
+                `Server returned ${response.status}`
+            );
+
+        }
+
+
+        const data =
+            await response.json();
+
+
+        renderDocuments(
+            data.documents || []
+        );
+
+    }
+    catch (error) {
+
+        console.error(
+            "Unable to load documents:",
+            error
+        );
+
+        documentsList.innerHTML = `
+            <div class="empty-documents">
+                Unable to load documents.
+            </div>
+        `;
+
+    }
+
+}
+
+
+function renderDocuments(documents) {
+
+    documentsList.innerHTML = "";
+
+
+    if (
+        !documents ||
+        documents.length === 0
+    ) {
+
+        documentsList.innerHTML = `
+            <div class="empty-documents">
+                No documents uploaded yet.
+            </div>
+        `;
+
+        return;
+
+    }
+
+
+    documents.forEach(
+        documentItem => {
+
+            const wrapper =
+                document.createElement("div");
+
+            wrapper.className =
+                "document-item";
+
+
+            const info =
+                document.createElement("div");
+
+            info.className =
+                "document-info";
+
+
+            const name =
+                document.createElement("div");
+
+            name.className =
+                "document-name";
+
+            name.textContent =
+                documentItem.filename;
+
+            name.title =
+                documentItem.filename;
+
+
+            const date =
+                document.createElement("div");
+
+            date.className =
+                "document-date";
+
+            date.textContent =
+                `Uploaded: ${formatDate(
+                    documentItem.created_at
+                )}`;
+
+
+            info.appendChild(
+                name
+            );
+
+            info.appendChild(
+                date
+            );
+
+
+            const deleteButton =
+                document.createElement("button");
+
+            deleteButton.className =
+                "delete-document-button";
+
+            deleteButton.textContent =
+                "Delete";
+
+
+            deleteButton.addEventListener(
+                "click",
+                () => {
+
+                    deleteDocument(
+                        documentItem.id,
+                        documentItem.filename
+                    );
+
+                }
+            );
+
+
+            wrapper.appendChild(
+                info
+            );
+
+            wrapper.appendChild(
+                deleteButton
+            );
+
+
+            documentsList.appendChild(
+                wrapper
+            );
+
+        }
+    );
+
+}
+
+
+async function deleteDocument(
+    documentId,
+    filename
+) {
+
+    const confirmed =
+        confirm(
+            `Delete "${filename}"?\n\n` +
+            "This will remove the document and " +
+            "all of its indexed chunks from KnowledgeHub."
+        );
+
+
+    if (!confirmed) {
+
+        return;
+
+    }
+
+
+    try {
+
+        const response =
+            await fetch(
+                `${API_URL}/documents/${documentId}`,
+                {
+                    method: "DELETE"
+                }
+            );
+
+
+        if (!response.ok) {
+
+            throw new Error(
+                `Server returned ${response.status}`
+            );
+
+        }
+
+
+        const data =
+            await response.json();
+
+
+        if (!data.success) {
+
+            alert(
+                data.message ||
+                "Unable to delete document."
+            );
+
+            return;
+
+        }
+
+
+        await loadDocuments();
+
+
+        uploadStatus.textContent =
+            `${filename} was deleted successfully.`;
+
+        uploadStatus.className =
+            "upload-success";
+
+    }
+    catch (error) {
+
+        console.error(
+            "Unable to delete document:",
+            error
+        );
+
+        alert(
+            "Unable to delete the document."
+        );
+
+    }
+
+}
+
+
+function formatDate(value) {
+
+    if (!value) {
+
+        return "Unknown date";
+
+    }
+
+
+    const date =
+        new Date(value);
+
+
+    if (
+        Number.isNaN(
+            date.getTime()
+        )
+    ) {
+
+        return String(value);
+
+    }
+
+
+    return date.toLocaleString();
+
+}
+
+
+/* =========================================
+   CLEAR CURRENT CHAT DISPLAY
+   ========================================= */
+
+
+function clearChat() {
+
+    chat.innerHTML = `
+        <div
+            class="welcome"
+            id="welcome"
+        >
+
+            <h2>
+                Welcome to KnowledgeHub
+            </h2>
+
+            <p>
+                Ask a question about your documents.
+            </p>
+
+        </div>
+    `;
+
+}
+
+
+function showWelcome() {
+
+    clearChat();
+
+}
+
+
+/* =========================================
+   ADD USER MESSAGE
+   ========================================= */
+
+
+function addUserMessage(question) {
+
+    const currentWelcome =
+        document.getElementById(
+            "welcome"
+        );
+
+
+    if (currentWelcome) {
+
+        currentWelcome.remove();
+
+    }
+
+
+    const message =
+        document.createElement("div");
+
+    message.className =
+        "message user-message";
+
+
+    message.innerHTML = `
+        <div class="user-bubble">
+            ${escapeHtml(question)}
+        </div>
+    `;
+
+
+    chat.appendChild(
+        message
+    );
+
+
+    scrollToBottom();
+
+}
+
+
+/* =========================================
+   ADD ASSISTANT MESSAGE
+   ========================================= */
+
+
+function addAssistantMessage(data) {
+
+    const message =
+        document.createElement("div");
+
+    message.className =
+        "message assistant-message";
+
+
+    let sourcesHtml = "";
+
+
+    if (
+        data.sources &&
+        data.sources.length > 0
+    ) {
+
+        sourcesHtml = `
+            <div class="sources">
+
+                <strong>
+                    Sources
+                </strong>
+
+                ${data.sources.map(
+                    source => `
+
+                    <div class="source">
+
+                        ${escapeHtml(
+                            source.filename ||
+                            "Unknown document"
+                        )}
+
+                        — Chunk
+                        ${escapeHtml(
+                            String(
+                                source.chunk_index ??
+                                ""
+                            )
+                        )}
+
+                        ${
+                            source.relevance !== undefined
+                            ? `— Relevance
+                               ${escapeHtml(
+                                   String(
+                                       source.relevance
+                                   )
+                               )}`
+                            : ""
+                        }
+
+                    </div>
+
+                    `
+                ).join("")}
+
+            </div>
+        `;
+
+    }
+
+
+    message.innerHTML = `
+        <div class="assistant-bubble">
+
+            <div>
+                ${escapeHtml(
+                    data.answer || ""
+                )}
+            </div>
+
+            ${sourcesHtml}
+
+        </div>
+    `;
+
+
+    chat.appendChild(
+        message
+    );
+
+
+    scrollToBottom();
+
+}
+
+
+/* =========================================
+   LOADING MESSAGE
+   ========================================= */
+
+
+function addLoadingMessage() {
+
+    const message =
+        document.createElement("div");
+
+    message.className =
+        "message assistant-message";
+
+    message.id =
+        "loading-message";
+
+
+    message.innerHTML = `
+        <div class="assistant-bubble loading">
+            KnowledgeHub is thinking...
+        </div>
+    `;
+
+
+    chat.appendChild(
+        message
+    );
+
+
+    scrollToBottom();
+
+}
+
+
+function removeLoadingMessage() {
+
+    const loading =
+        document.getElementById(
+            "loading-message"
+        );
+
+
+    if (loading) {
+
+        loading.remove();
+
+    }
+
+}
+
+
+/* =========================================
+   ASK QUESTION
+   ========================================= */
+
+
+async function askQuestion() {
+
+    const question =
+        questionInput.value.trim();
+
+
+    if (!question) {
+
+        return;
+
+    }
+
+
+    /*
+     * If there is no active session,
+     * create one automatically.
+     */
+
+    if (currentSessionId === null) {
+
+        try {
+
+            const response =
+                await fetch(
+                    `${API_URL}/chats`,
+                    {
+                        method: "POST"
+                    }
+                );
+
+
+            if (!response.ok) {
+
+                throw new Error(
+                    `Server returned ${response.status}`
+                );
+
+            }
+
+
+            const data =
+                await response.json();
+
+
+            currentSessionId =
+                data.id;
+
+            saveCurrentSession();
+
+        }
+        catch (error) {
+
+            console.error(
+                "Unable to create chat:",
+                error
+            );
+
+            addAssistantMessage({
+
+                answer:
+                    "Unable to create a chat session. " +
+                    "Please make sure the FastAPI backend is running.",
+
+                sources: []
+
+            });
+
+            return;
+
+        }
+
+    }
+
+
+    addUserMessage(
+        question
+    );
+
+
+    questionInput.value = "";
+
+    askButton.disabled = true;
+
+    addLoadingMessage();
+
+
+    try {
+
+        const response =
+            await fetch(
+                `${API_URL}/ask`,
+                {
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body: JSON.stringify({
+
+                        question:
+                            question,
+
+                        session_id:
+                            currentSessionId
+
+                    })
+
+                }
+            );
+
+
+        if (!response.ok) {
+
+            throw new Error(
+                `Server returned ${response.status}`
+            );
+
+        }
+
+
+        const data =
+            await response.json();
+
+
+        removeLoadingMessage();
+
+
+        if (
+            data.session_id
+        ) {
+
+            currentSessionId =
+                data.session_id;
+
+            saveCurrentSession();
+
+        }
+
+
+        addAssistantMessage(
+            data
+        );
+
+
+        await loadChatHistory();
+
+    }
+    catch (error) {
+
+        removeLoadingMessage();
+
+
+        addAssistantMessage({
+
+            answer:
+                "Unable to connect to KnowledgeHub backend. " +
+                "Please make sure the FastAPI server is running.",
+
+            sources: []
+
+        });
+
+
+        console.error(
+            error
+        );
+
+    }
+    finally {
+
+        askButton.disabled =
+            false;
+
+        questionInput.focus();
+
+    }
+
+}
+
+
+/* =========================================
+   UPLOAD DOCUMENT
+   ========================================= */
+
+
+async function uploadDocument() {
+
+    const file =
+        fileInput.files[0];
+
+
+    if (!file) {
+
+        uploadStatus.textContent =
+            "Please select a PDF file.";
+
+        uploadStatus.className =
+            "upload-error";
+
+        return;
+
+    }
+
+
+    if (
+        !file.name
+            .toLowerCase()
+            .endsWith(".pdf")
+    ) {
+
+        uploadStatus.textContent =
+            "Only PDF files are supported.";
+
+        uploadStatus.className =
+            "upload-error";
+
+        return;
+
+    }
+
+
+    const formData =
+        new FormData();
+
+
+    formData.append(
+        "file",
+        file
+    );
+
+
+    uploadButton.disabled =
+        true;
+
+
+    uploadStatus.textContent =
+        "Uploading and ingesting document...";
+
+    uploadStatus.className =
+        "";
+
+
+    try {
+
+        const response =
+            await fetch(
+                `${API_URL}/documents/upload`,
+                {
+                    method: "POST",
+                    body: formData
+                }
+            );
+
+
+        if (!response.ok) {
+
+            throw new Error(
+                `Server returned ${response.status}`
+            );
+
+        }
+
+
+        const data =
+            await response.json();
+
+
+        if (data.success) {
+
+            uploadStatus.textContent =
+                `${data.filename} uploaded and successfully ingested.`;
+
+            uploadStatus.className =
+                "upload-success";
+
+
+            fileInput.value = "";
+
+
+            await loadDocuments();
+
+        }
+        else {
+
+            uploadStatus.textContent =
+                data.message ||
+                "Document ingestion failed.";
+
+            uploadStatus.className =
+                "upload-error";
+
+        }
+
+    }
+    catch (error) {
+
+        uploadStatus.textContent =
+            "Unable to connect to KnowledgeHub backend.";
+
+        uploadStatus.className =
+            "upload-error";
+
+
+        console.error(
+            error
+        );
+
+    }
+    finally {
+
+        uploadButton.disabled =
+            false;
+
+    }
+
+}
+
+
+/* =========================================
+   UTILITY FUNCTIONS
+   ========================================= */
+
+
+function scrollToBottom() {
+
+    window.scrollTo({
+
+        top:
+            document.body.scrollHeight,
+
+        behavior:
+            "smooth"
+
+    });
+
+}
+
+
+function escapeHtml(text) {
+
+    const div =
+        document.createElement(
+            "div"
+        );
+
+    div.textContent =
+        text ?? "";
+
+    return div.innerHTML;
+
+}
+
+
+/* =========================================
+   EVENT LISTENERS
+   ========================================= */
+
+
+askButton.addEventListener(
+    "click",
+    askQuestion
+);
+
+
+uploadButton.addEventListener(
+    "click",
+    uploadDocument
+);
+
+
+newChatButton.addEventListener(
+    "click",
+    createNewChat
+);
+
+
+refreshDocumentsButton.addEventListener(
+    "click",
+    loadDocuments
+);
+
+
+questionInput.addEventListener(
+    "keydown",
+    function(event) {
+
+        if (
+            event.key === "Enter"
+        ) {
+
+            askQuestion();
+
+        }
+
+    }
+);
+
+
+/* =========================================
+   INITIALIZE APPLICATION
+   ========================================= */
+
+
+loadChatHistory();
+
+loadDocuments();
+
+restoreCurrentChat();
+
+
+</script>
+
+
+</body>
+
+</html>
