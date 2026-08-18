@@ -765,7 +765,7 @@ V3 should be driven by measured retrieval/application needs rather than adding c
 
 ## Project Status
 
-**KnowledgeHub AI V2 Ã¢â‚¬â€ Complete Ã¢Å“â€¦**
+**KnowledgeHub AI V2 is completed**
 
 V2 includes:
 
@@ -793,7 +793,7 @@ V2 includes:
 
 **Automated test suite: 27/27 passed.**
 
-**End-to-end RAG evaluation: 16/16 passed Ã¢â‚¬â€ 100% outcome accuracy.**
+**End-to-end RAG evaluation: 16/16 passed with 100% outcome accuracy.**
 
 V2 is feature-complete and establishes the next stable foundation for future KnowledgeHub AI development.
 
