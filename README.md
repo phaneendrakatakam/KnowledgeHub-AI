@@ -69,7 +69,7 @@ The right-side evidence panel lets the user inspect the actual retrieved passage
 
 Developer Mode exposes retrieval details such as chunk indexes and relevance scores while keeping normal mode focused on readable evidence.
 
-![Developer Mode](screenshots/V2/08-developer-mode-retrieval-metadata.png)
+![Developer Mode](screenshots/V2/09-developer-mode-full-workspace.png)
 
 ### Conversational Follow-Ups
 
@@ -103,7 +103,7 @@ The end-to-end evaluation checks both answerable and unsupported questions.
 
 ![RAG Evaluation](screenshots/V2/14-rag-evaluation-16-of-16.png)
 
-**V2 RAG evaluation result: 16/16 passed â€” 100% outcome accuracy.**
+**V2 RAG evaluation result: 16/16 passed Ã¢â‚¬â€ 100% outcome accuracy.**
 
 ## What's New in V2
 
@@ -765,7 +765,7 @@ V3 should be driven by measured retrieval/application needs rather than adding c
 
 ## Project Status
 
-**KnowledgeHub AI V2 â€” Complete âœ…**
+**KnowledgeHub AI V2 Ã¢â‚¬â€ Complete Ã¢Å“â€¦**
 
 V2 includes:
 
@@ -793,7 +793,7 @@ V2 includes:
 
 **Automated test suite: 27/27 passed.**
 
-**End-to-end RAG evaluation: 16/16 passed â€” 100% outcome accuracy.**
+**End-to-end RAG evaluation: 16/16 passed Ã¢â‚¬â€ 100% outcome accuracy.**
 
 V2 is feature-complete and establishes the next stable foundation for future KnowledgeHub AI development.
 
