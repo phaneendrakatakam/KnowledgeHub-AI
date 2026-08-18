@@ -37,63 +37,63 @@ KnowledgeHub AI V2 builds on the V1 RAG pipeline with a redesigned workspace, mu
 
 The V2 interface introduces a three-part workspace for conversations, the active knowledge workspace, and supporting source evidence.
 
-![KnowledgeHub AI V2 Workspace](screenshots/v2/01-v2-workspace.png)
+![KnowledgeHub AI V2 Workspace](screenshots/V2/01-v2-main-workspace.png)
 
 ### PDF Upload and Ingestion
 
 PDFs can be selected from the Knowledge Base panel and ingested into the local vector knowledge base.
 
-![PDF Selected for Upload](screenshots/v2/02-pdf-selected.png)
+![PDF Selected for Upload](screenshots/V2/02-pdf-selected-for-upload.png)
 
-![Successful PDF Ingestion](screenshots/v2/03-pdf-ingested.png)
+![Successful PDF Ingestion](screenshots/V2/03-pdf-upload-success.png)
 
 ### Multi-Document Knowledge Base
 
 V2 supports multiple indexed PDFs and exposes their state directly in the Knowledge Base panel.
 
-![Multiple Documents](screenshots/v2/04-multiple-documents.png)
+![Multiple Documents](screenshots/V2/04-knowledge-base-multiple-documents.png)
 
 ### Grounded Question Answering
 
 KnowledgeHub retrieves relevant document chunks and generates an answer from the retrieved evidence.
 
-![Grounded Answer](screenshots/v2/05-grounded-answer.png)
+![Grounded Answer](screenshots/V2/06-grounded-answer-with-sources.png)
 
 ### Sources & Context
 
 The right-side evidence panel lets the user inspect the actual retrieved passages used to ground the latest answer instead of seeing only a filename.
 
-![Sources and Context](screenshots/v2/06-sources-context.png)
+![Sources and Context](screenshots/V2/07-supporting-evidence-panel.png)
 
 ### Developer Mode
 
 Developer Mode exposes retrieval details such as chunk indexes and relevance scores while keeping normal mode focused on readable evidence.
 
-![Developer Mode](screenshots/v2/07-developer-mode.png)
+![Developer Mode](screenshots/V2/08-developer-mode-retrieval-metadata.png)
 
 ### Conversational Follow-Ups
 
 A user can continue the same conversation with related questions and simpler follow-up requests while retaining the chat session.
 
-![Conversational Follow-ups](screenshots/v2/08-conversational-followups.png)
+![Conversational Follow-ups](screenshots/V2/10-conversational-follow-up.png)
 
 ### Grounded Rejection
 
 When the available documents do not support a question, KnowledgeHub declines to answer rather than inventing information.
 
-![Grounded Rejection](screenshots/v2/09-grounded-rejection.png)
+![Grounded Rejection](screenshots/V2/11-grounded-rejection.png)
 
 ### Dark Mode
 
 The V2 workspace supports a persistent dark theme.
 
-![Dark Mode](screenshots/v2/10-dark-mode.png)
+![Dark Mode](screenshots/V2/12-dark-theme.png)
 
 ### Automated Testing
 
 The V2 automated regression suite currently passes all tests.
 
-![Automated Tests](screenshots/v2/11-automated-tests.png)
+![Automated Tests](screenshots/V2/13-pytest-27-passed.png)
 
 **V2 automated test result: 27/27 passed.**
 
@@ -101,9 +101,9 @@ The V2 automated regression suite currently passes all tests.
 
 The end-to-end evaluation checks both answerable and unsupported questions.
 
-![RAG Evaluation](screenshots/v2/12-rag-evaluation.png)
+![RAG Evaluation](screenshots/V2/14-rag-evaluation-16-of-16.png)
 
-**V2 RAG evaluation result: 16/16 passed — 100% outcome accuracy.**
+**V2 RAG evaluation result: 16/16 passed â€” 100% outcome accuracy.**
 
 ## What's New in V2
 
@@ -356,8 +356,8 @@ KnowledgeHub-AI/
 |   +-- automated test files
 |
 +-- screenshots/
-|   +-- v1/
-|   +-- v2/
+|   +-- V1/
+|   +-- V2/
 |
 +-- .gitignore
 +-- README.md
@@ -765,7 +765,7 @@ V3 should be driven by measured retrieval/application needs rather than adding c
 
 ## Project Status
 
-**KnowledgeHub AI V2 — Complete ✅**
+**KnowledgeHub AI V2 â€” Complete âœ…**
 
 V2 includes:
 
@@ -793,7 +793,7 @@ V2 includes:
 
 **Automated test suite: 27/27 passed.**
 
-**End-to-end RAG evaluation: 16/16 passed — 100% outcome accuracy.**
+**End-to-end RAG evaluation: 16/16 passed â€” 100% outcome accuracy.**
 
 V2 is feature-complete and establishes the next stable foundation for future KnowledgeHub AI development.
 
@@ -802,3 +802,4 @@ V2 is feature-complete and establishes the next stable foundation for future Kno
 **Phaneendra Katakam**
 
 GitHub: [@phaneendrakatakam](https://github.com/phaneendrakatakam)
+
