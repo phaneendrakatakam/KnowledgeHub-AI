@@ -24,8 +24,6 @@ KnowledgeHub AI processes uploaded documents, converts their content into search
 - Keep API credentials and local documents outside the public repository
 - Automated testing of core document processing, retrieval, and RAG functionality
 
-## Screenshots
-
 ### KnowledgeHub AI Interface
 
 The V1 web interface provides document management, chat history, PDF upload, and document question-answering functionality.

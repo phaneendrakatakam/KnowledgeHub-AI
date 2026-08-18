@@ -10,7 +10,17 @@
         content="width=device-width, initial-scale=1.0"
     >
 
-    <title>KnowledgeHub AI</title>
+    <title>KnowledgeHub AI V2</title>
+
+    <script>
+        // Apply the saved theme before the page paints to avoid a flash.
+        (function () {
+            const savedTheme =
+                localStorage.getItem("knowledgehub_theme") || "light";
+
+            document.documentElement.dataset.theme = savedTheme;
+        })();
+    </script>
 
     <style>
 
@@ -18,484 +28,2390 @@
             box-sizing: border-box;
         }
 
+        :root {
+            --bg: #f3f5fb;
+            --surface: rgba(255, 255, 255, 0.82);
+            --surface-solid: #ffffff;
+            --surface-soft: #f8f9fd;
+
+            --border: #e3e7f0;
+            --border-strong: #d8deea;
+
+            --text-primary: #1c2333;
+            --text-secondary: #697386;
+            --text-muted: #9aa3b2;
+
+            --primary: #6d5dfc;
+            --primary-dark: #5948ee;
+            --primary-soft: #eeebff;
+
+            --blue: #4f7cff;
+            --green: #28a977;
+            --red: #df5c68;
+
+            --sidebar-width: 286px;
+            --context-width: 300px;
+
+            --radius-md: 16px;
+
+            --shadow-card:
+                0 4px 18px rgba(40, 50, 80, 0.06);
+        }
+
+
+        html,
         body {
             margin: 0;
-            font-family: Arial, Helvetica, sans-serif;
-            background: #f5f7fb;
-            color: #1f2937;
+            min-height: 100%;
         }
 
-        .app {
-            max-width: 1200px;
-            margin: 0 auto;
+
+        body {
+            font-family:
+                Inter,
+                -apple-system,
+                BlinkMacSystemFont,
+                "Segoe UI",
+                Roboto,
+                Arial,
+                sans-serif;
+
+            background:
+                radial-gradient(
+                    circle at 15% 10%,
+                    rgba(109, 93, 252, 0.10),
+                    transparent 28%
+                ),
+                radial-gradient(
+                    circle at 85% 5%,
+                    rgba(79, 124, 255, 0.08),
+                    transparent 25%
+                ),
+                var(--bg);
+
+            color: var(--text-primary);
+        }
+
+
+        button,
+        input {
+            font: inherit;
+        }
+
+
+        button {
+            -webkit-tap-highlight-color: transparent;
+        }
+
+
+        /* =========================================
+           APPLICATION SHELL
+           ========================================= */
+
+
+        .app-shell {
             min-height: 100vh;
-            display: flex;
-            flex-direction: column;
+
+            display: grid;
+
+            grid-template-columns:
+                var(--sidebar-width)
+                minmax(0, 1fr)
+                var(--context-width);
         }
 
-        header {
-            padding: 24px 20px;
-            background: white;
-            border-bottom: 1px solid #e5e7eb;
-        }
 
-        header h1 {
-            margin: 0;
-            font-size: 26px;
-        }
+        /* =========================================
+           SIDEBAR
+           ========================================= */
 
-        header p {
-            margin: 6px 0 0;
-            color: #6b7280;
-            font-size: 14px;
-        }
-
-        .main-layout {
-            display: flex;
-            flex: 1;
-            min-height: calc(100vh - 100px);
-        }
-
-        /* ================================
-           CHAT HISTORY SIDEBAR
-           ================================ */
 
         .sidebar {
-            width: 270px;
-            background: #ffffff;
-            border-right: 1px solid #e5e7eb;
-            padding: 16px;
+            position: sticky;
+            top: 0;
+
+            height: 100vh;
+
+            padding: 22px 16px;
+
+            border-right:
+                1px solid rgba(218, 223, 235, 0.85);
+
+            background:
+                rgba(250, 251, 255, 0.78);
+
+            backdrop-filter:
+                blur(20px);
+
             display: flex;
             flex-direction: column;
-            flex-shrink: 0;
+
+            overflow: hidden;
         }
+
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+
+            padding: 2px 8px 20px;
+        }
+
+
+        .brand-icon {
+            width: 42px;
+            height: 42px;
+
+            border-radius: 14px;
+
+            display: grid;
+            place-items: center;
+
+            color: white;
+
+            font-size: 19px;
+            font-weight: 700;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #7c6cff,
+                    #5869ff
+                );
+
+            box-shadow:
+                0 8px 22px rgba(109, 93, 252, 0.25);
+        }
+
+
+        .brand-text {
+            min-width: 0;
+        }
+
+
+        .brand-title {
+            font-size: 17px;
+            font-weight: 750;
+
+            letter-spacing: -0.2px;
+        }
+
+
+        .brand-version {
+            margin-top: 3px;
+
+            font-size: 11px;
+            font-weight: 600;
+
+            color: var(--primary);
+
+            letter-spacing: 0.7px;
+            text-transform: uppercase;
+        }
+
 
         .new-chat-button {
             width: 100%;
-            padding: 12px 14px;
+
             border: none;
-            border-radius: 10px;
-            background: #2563eb;
+
+            padding: 12px 14px;
+
+            border-radius: 13px;
+
             color: white;
+
+            font-weight: 650;
             font-size: 14px;
+
             cursor: pointer;
-            margin-bottom: 16px;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    var(--primary),
+                    #5b6cff
+                );
+
+            box-shadow:
+                0 8px 20px rgba(109, 93, 252, 0.20);
+
+            transition:
+                transform 0.18s ease,
+                box-shadow 0.18s ease;
         }
+
 
         .new-chat-button:hover {
-            background: #1d4ed8;
+            transform: translateY(-1px);
+
+            box-shadow:
+                0 10px 24px rgba(109, 93, 252, 0.27);
         }
 
-        .history-title {
-            font-size: 13px;
-            font-weight: bold;
-            color: #6b7280;
-            text-transform: uppercase;
-            margin-bottom: 8px;
+
+        .sidebar-section {
+            margin-top: 24px;
+
+            min-height: 0;
+
+            display: flex;
+            flex-direction: column;
         }
+
+
+        .sidebar-section.chat-section {
+            flex: 1;
+
+            min-height: 150px;
+        }
+
+
+        .sidebar-heading-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+
+            margin-bottom: 9px;
+
+            padding: 0 7px;
+        }
+
+
+        .sidebar-heading {
+            font-size: 11px;
+            font-weight: 750;
+
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+
+            color: var(--text-muted);
+        }
+
+
+        .tiny-button {
+            width: 27px;
+            height: 27px;
+
+            border:
+                1px solid transparent;
+
+            border-radius: 8px;
+
+            background: transparent;
+
+            color: var(--text-secondary);
+
+            cursor: pointer;
+
+            display: grid;
+            place-items: center;
+        }
+
+
+        .tiny-button:hover {
+            background: var(--surface-solid);
+
+            border-color: var(--border);
+        }
+
 
         #chatHistory {
             overflow-y: auto;
-            flex: 1;
+
+            padding-right: 2px;
         }
+
 
         .chat-history-item {
             display: flex;
             align-items: center;
-            gap: 6px;
-            margin-bottom: 6px;
+
+            gap: 4px;
+
+            margin-bottom: 4px;
         }
+
 
         .chat-history-button {
             flex: 1;
-            text-align: left;
-            padding: 10px 12px;
+
+            min-width: 0;
+
             border: none;
-            border-radius: 9px;
+
+            padding: 10px 11px;
+
+            border-radius: 10px;
+
             background: transparent;
-            color: #374151;
+
+            text-align: left;
+
+            color: #50596a;
+
             cursor: pointer;
-            font-size: 14px;
+
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+
+            font-size: 13px;
+        }
+
+
+        .chat-history-button:hover {
+            background:
+                rgba(255, 255, 255, 0.75);
+        }
+
+
+        .chat-history-button.active {
+            background: var(--primary-soft);
+
+            color: var(--primary-dark);
+
+            font-weight: 650;
+        }
+
+
+        .delete-chat-button {
+            width: 28px;
+            height: 28px;
+
+            flex-shrink: 0;
+
+            border: none;
+
+            border-radius: 8px;
+
+            background: transparent;
+
+            color: #afb6c2;
+
+            cursor: pointer;
+
+            opacity: 0;
+        }
+
+
+        .chat-history-item:hover
+        .delete-chat-button {
+            opacity: 1;
+        }
+
+
+        .delete-chat-button:hover {
+            background: #fff0f1;
+
+            color: var(--red);
+        }
+
+
+        .empty-history,
+        .empty-documents {
+            padding: 10px 8px;
+
+            font-size: 12px;
+
+            color: var(--text-muted);
+        }
+
+
+        /* =========================================
+           KNOWLEDGE BASE
+           ========================================= */
+
+
+        .knowledge-section {
+            max-height: 300px;
+        }
+
+
+        .knowledge-actions {
+            display: grid;
+
+            grid-template-columns:
+                minmax(0, 1fr)
+                74px;
+
+            gap: 7px;
+
+            margin-bottom: 10px;
+
+            width: 100%;
+            min-width: 0;
+        }
+
+
+        #fileInput {
+            display: none;
+        }
+
+
+        .add-document-button {
+            width: 100%;
+
+            min-width: 0;
+            max-width: 100%;
+
+            border:
+                1px dashed #c8c5ff;
+
+            padding: 10px 12px;
+
+            border-radius: 11px;
+
+            color: var(--primary-dark);
+
+            background:
+                rgba(239, 236, 255, 0.75);
+
+            cursor: pointer;
+
+            font-size: 13px;
+            font-weight: 650;
+
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
         }
 
-        .chat-history-button:hover {
-            background: #f3f4f6;
+
+        .add-document-button:hover {
+            background: #e9e5ff;
+
+            border-color: #aaa3ff;
         }
 
-        .chat-history-button.active {
-            background: #eff6ff;
-            color: #1d4ed8;
-            font-weight: 600;
-        }
 
-        .delete-chat-button {
-            border: none;
-            background: transparent;
-            color: #9ca3af;
-            cursor: pointer;
-            padding: 6px;
-            border-radius: 6px;
-        }
+        .add-document-button:disabled {
+            opacity: 0.55;
 
-        .delete-chat-button:hover {
-            background: #fee2e2;
-            color: #dc2626;
-        }
-
-        .empty-history {
-            color: #9ca3af;
-            font-size: 13px;
-            padding: 10px 4px;
-        }
-
-        /* ================================
-           CONTENT AREA
-           ================================ */
-
-        .content {
-            flex: 1;
-            min-width: 0;
-        }
-
-        .upload-section {
-            margin: 20px;
-            padding: 20px;
-            background: white;
-            border: 1px solid #e5e7eb;
-            border-radius: 14px;
-        }
-
-        .upload-section h2 {
-            margin-top: 0;
-            font-size: 18px;
-        }
-
-        .upload-row {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
-
-        #fileInput {
-            flex: 1;
-            padding: 10px;
-            border: 1px solid #d1d5db;
-            border-radius: 10px;
-            background: white;
-        }
-
-        #uploadButton {
-            padding: 11px 18px;
-            border: none;
-            border-radius: 10px;
-            background: #16a34a;
-            color: white;
-            cursor: pointer;
-        }
-
-        #uploadButton:hover {
-            background: #15803d;
-        }
-
-        #uploadButton:disabled {
-            background: #9ca3af;
             cursor: not-allowed;
         }
 
-        #uploadStatus {
-            margin-top: 12px;
-            font-size: 14px;
-        }
 
-        .upload-success {
-            color: #15803d;
-        }
+        #uploadButton {
+            width: 74px;
+            min-width: 74px;
+            max-width: 74px;
 
-        .upload-error {
-            color: #dc2626;
-        }
+            border: none;
 
-        /* ================================
-           DOCUMENT LIBRARY
-           ================================ */
+            padding: 0 8px;
 
-        .documents-section {
-            margin: 20px;
-            padding: 20px;
-            background: white;
-            border: 1px solid #e5e7eb;
-            border-radius: 14px;
-        }
+            border-radius: 11px;
 
-        .documents-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 14px;
-        }
+            background: var(--green);
 
-        .documents-header h2 {
-            margin: 0;
-            font-size: 18px;
-        }
+            color: white;
 
-        .refresh-documents-button {
-            padding: 8px 12px;
-            border: 1px solid #d1d5db;
-            border-radius: 8px;
-            background: white;
-            color: #374151;
             cursor: pointer;
-            font-size: 13px;
+
+            font-weight: 650;
+            font-size: 12px;
         }
 
-        .refresh-documents-button:hover {
-            background: #f3f4f6;
+
+        #uploadButton:hover {
+            background: #229368;
         }
 
-        .documents-list {
+
+        #uploadButton:disabled {
+            background: #a7b0bc;
+
+            cursor: not-allowed;
+        }
+
+
+        #documentsList {
+            overflow-y: auto;
+
             display: flex;
             flex-direction: column;
-            gap: 8px;
+
+            gap: 5px;
+
+            min-width: 0;
         }
+
 
         .document-item {
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            gap: 12px;
-            padding: 12px;
-            border: 1px solid #e5e7eb;
+
+            gap: 8px;
+
+            padding: 9px;
+
+            min-width: 0;
+
             border-radius: 10px;
-            background: #fafafa;
+
+            border:
+                1px solid transparent;
+
+            background:
+                rgba(255, 255, 255, 0.50);
         }
 
+
+        .document-item:hover {
+            border-color: var(--border);
+
+            background:
+                rgba(255, 255, 255, 0.86);
+        }
+
+
+        .document-icon {
+            width: 32px;
+            height: 32px;
+
+            flex-shrink: 0;
+
+            display: grid;
+            place-items: center;
+
+            border-radius: 9px;
+
+            color: #e05260;
+
+            background: #fff0f1;
+
+            font-size: 13px;
+            font-weight: 750;
+        }
+
+
         .document-info {
+            flex: 1;
+
             min-width: 0;
         }
 
+
         .document-name {
-            font-size: 14px;
-            font-weight: 600;
-            color: #374151;
+            max-width: 100%;
+
+            color: #444d5d;
+
+            font-size: 12px;
+            font-weight: 650;
+
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
         }
 
+
         .document-date {
-            margin-top: 4px;
-            font-size: 12px;
-            color: #9ca3af;
+            margin-top: 2px;
+
+            font-size: 10px;
+
+            color: var(--text-muted);
+
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
+
 
         .delete-document-button {
+            width: 26px;
+            height: 26px;
+
             flex-shrink: 0;
-            padding: 8px 12px;
+
             border: none;
+
             border-radius: 8px;
-            background: #fee2e2;
-            color: #dc2626;
+
+            color: #adb4bf;
+
+            background: transparent;
+
             cursor: pointer;
-            font-size: 13px;
+
+            opacity: 0;
         }
+
+
+        .document-item:hover
+        .delete-document-button {
+            opacity: 1;
+        }
+
 
         .delete-document-button:hover {
-            background: #fecaca;
+            background: #fff0f1;
+
+            color: var(--red);
         }
 
-        .delete-document-button:disabled {
-            background: #e5e7eb;
-            color: #9ca3af;
-            cursor: not-allowed;
+
+        #uploadStatus {
+            min-height: 16px;
+
+            margin-top: 8px;
+
+            padding: 0 6px;
+
+            font-size: 11px;
+
+            line-height: 1.35;
+
+            overflow-wrap: anywhere;
         }
 
-        .empty-documents {
-            padding: 12px 4px;
-            color: #9ca3af;
-            font-size: 13px;
+
+        .upload-success {
+            color: var(--green);
         }
 
-        /* ================================
-           CHAT
-           ================================ */
 
-        #chat {
-            padding: 10px 20px 120px;
+        .upload-error {
+            color: var(--red);
         }
 
-        .welcome {
+
+        /* =========================================
+           KNOWLEDGE BASE UX STATES
+           ========================================= */
+
+
+        .knowledge-state {
+            padding: 14px 10px;
+
+            border: 1px dashed var(--border-strong);
+
+            border-radius: 12px;
+
+            background: rgba(255, 255, 255, 0.42);
+
+            color: var(--text-secondary);
+
+            font-size: 11px;
+
+            line-height: 1.5;
+
             text-align: center;
-            margin-top: 70px;
-            color: #6b7280;
         }
 
-        .welcome h2 {
-            color: #111827;
-            margin-bottom: 8px;
+
+        .knowledge-state-title {
+            margin-top: 7px;
+
+            color: var(--text-primary);
+
+            font-size: 12px;
+            font-weight: 700;
         }
 
-        .message {
-            margin-bottom: 24px;
+
+        .knowledge-state-text {
+            margin-top: 3px;
         }
 
-        .user-message {
+
+        .knowledge-state-icon {
+            width: 34px;
+            height: 34px;
+
+            margin: 0 auto;
+
+            display: grid;
+            place-items: center;
+
+            border-radius: 10px;
+
+            background: var(--primary-soft);
+
+            color: var(--primary);
+
+            font-size: 12px;
+            font-weight: 800;
+        }
+
+
+        .knowledge-loading {
             display: flex;
-            justify-content: flex-end;
+            align-items: center;
+            justify-content: center;
+
+            gap: 8px;
+
+            padding: 12px 8px;
+
+            color: var(--text-secondary);
+
+            font-size: 11px;
         }
 
-        .user-bubble {
-            max-width: 75%;
-            background: #2563eb;
-            color: white;
-            padding: 12px 16px;
-            border-radius: 16px 16px 4px 16px;
+
+        .knowledge-spinner {
+            width: 14px;
+            height: 14px;
+
+            flex-shrink: 0;
+
+            border: 2px solid var(--border);
+            border-top-color: var(--primary);
+
+            border-radius: 50%;
+
+            animation: knowledgeSpin 0.75s linear infinite;
+        }
+
+
+        @keyframes knowledgeSpin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+
+        .knowledge-retry-button {
+            margin-top: 9px;
+
+            border: 1px solid var(--border);
+
+            padding: 7px 10px;
+
+            border-radius: 8px;
+
+            background: var(--surface-solid);
+
+            color: var(--text-primary);
+
+            cursor: pointer;
+
+            font-size: 11px;
+            font-weight: 650;
+        }
+
+
+        .knowledge-retry-button:hover {
+            border-color: #bdb7ff;
+
+            color: var(--primary-dark);
+        }
+
+
+        .document-status {
+            margin-top: 4px;
+
+            display: inline-flex;
+            align-items: center;
+
+            gap: 5px;
+
+            color: var(--green);
+
+            font-size: 9px;
+            font-weight: 650;
+        }
+
+
+        .document-status-dot {
+            width: 5px;
+            height: 5px;
+
+            border-radius: 50%;
+
+            background: var(--green);
+        }
+
+
+        .upload-progress {
+            display: flex;
+            align-items: flex-start;
+
+            gap: 7px;
+
+            color: var(--text-secondary);
+        }
+
+
+        .upload-progress .knowledge-spinner {
+            width: 12px;
+            height: 12px;
+
+            margin-top: 1px;
+        }
+
+
+        /* =========================================
+           MAIN WORKSPACE
+           ========================================= */
+
+
+        .workspace {
+            min-width: 0;
+
+            display: flex;
+            flex-direction: column;
+
+            min-height: 100vh;
+        }
+
+
+        .workspace-header {
+            height: 78px;
+
+            flex-shrink: 0;
+
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+
+            gap: 20px;
+
+            padding: 0 28px;
+
+            border-bottom:
+                1px solid rgba(219, 224, 235, 0.75);
+
+            background:
+                rgba(247, 248, 252, 0.64);
+
+            backdrop-filter:
+                blur(16px);
+
+            position: sticky;
+            top: 0;
+
+            z-index: 5;
+        }
+
+
+        .workspace-title {
+            font-size: 18px;
+            font-weight: 750;
+
+            letter-spacing: -0.2px;
+        }
+
+
+        .workspace-subtitle {
+            margin-top: 3px;
+
+            color: var(--text-secondary);
+
+            font-size: 12px;
+        }
+
+
+        .status-chip {
+            padding: 8px 11px;
+
+            border-radius: 999px;
+
+            background: #e9f8f1;
+
+            color: #16825c;
+
+            font-size: 11px;
+            font-weight: 750;
+
+            display: flex;
+            align-items: center;
+
+            gap: 6px;
+        }
+
+
+        .status-dot {
+            width: 7px;
+            height: 7px;
+
+            border-radius: 50%;
+
+            background: #28ad79;
+
+            box-shadow:
+                0 0 0 4px rgba(40, 173, 121, 0.12);
+        }
+
+
+        .workspace-scroll {
+            flex: 1;
+
+            min-height: 0;
+
+            overflow-y: auto;
+
+            padding:
+                24px
+                28px
+                130px;
+        }
+
+
+        /* =========================================
+           BENTO SUMMARY
+           ========================================= */
+
+
+        .welcome-panel {
+            margin-bottom: 20px;
+        }
+
+
+        .welcome-eyebrow {
+            font-size: 12px;
+            font-weight: 700;
+
+            text-transform: uppercase;
+
+            letter-spacing: 0.8px;
+
+            color: var(--primary);
+        }
+
+
+        .welcome-title {
+            margin:
+                6px
+                0
+                5px;
+
+            font-size: 29px;
+
+            line-height: 1.18;
+
+            letter-spacing: -0.8px;
+        }
+
+
+        .welcome-description {
+            color: var(--text-secondary);
+
+            font-size: 14px;
+
             line-height: 1.5;
         }
 
+
+        .stats-grid {
+            display: grid;
+
+            grid-template-columns:
+                repeat(
+                    4,
+                    minmax(0, 1fr)
+                );
+
+            gap: 12px;
+
+            margin:
+                21px
+                0
+                26px;
+        }
+
+
+        .stat-card {
+            min-height: 92px;
+
+            padding: 15px;
+
+            border:
+                1px solid rgba(219, 224, 235, 0.90);
+
+            border-radius: var(--radius-md);
+
+            background:
+                rgba(255, 255, 255, 0.74);
+
+            backdrop-filter:
+                blur(16px);
+
+            box-shadow:
+                var(--shadow-card);
+        }
+
+
+        .stat-label {
+            color: var(--text-secondary);
+
+            font-size: 11px;
+            font-weight: 650;
+        }
+
+
+        .stat-value {
+            margin-top: 9px;
+
+            font-size: 24px;
+            font-weight: 750;
+
+            letter-spacing: -0.6px;
+        }
+
+
+        .stat-note {
+            margin-top: 2px;
+
+            font-size: 10px;
+
+            color: var(--text-muted);
+        }
+
+
+        /* =========================================
+           CHAT
+           ========================================= */
+
+
+        #chat {
+            max-width: 900px;
+
+            margin: 0 auto;
+        }
+
+
+        .welcome {
+            margin-top: 48px;
+
+            text-align: center;
+
+            padding: 30px;
+
+            border:
+                1px solid rgba(220, 225, 236, 0.85);
+
+            border-radius: 22px;
+
+            background:
+                rgba(255, 255, 255, 0.58);
+
+            backdrop-filter:
+                blur(12px);
+        }
+
+
+        .welcome-icon {
+            width: 54px;
+            height: 54px;
+
+            margin:
+                0
+                auto
+                13px;
+
+            border-radius: 17px;
+
+            display: grid;
+            place-items: center;
+
+            color: white;
+
+            font-size: 20px;
+            font-weight: 750;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    var(--primary),
+                    var(--blue)
+                );
+
+            box-shadow:
+                0 10px 30px rgba(109, 93, 252, 0.20);
+        }
+
+
+        .welcome h2 {
+            margin: 0;
+
+            font-size: 19px;
+        }
+
+
+        .welcome p {
+            margin:
+                8px
+                auto
+                0;
+
+            max-width: 480px;
+
+            color: var(--text-secondary);
+
+            font-size: 13px;
+
+            line-height: 1.55;
+        }
+
+
+        .message {
+            margin-bottom: 22px;
+        }
+
+
+        .user-message {
+            display: flex;
+
+            justify-content: flex-end;
+        }
+
+
+        .user-bubble {
+            max-width: 72%;
+
+            padding: 12px 16px;
+
+            border-radius:
+                17px
+                17px
+                5px
+                17px;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    var(--primary),
+                    #596cff
+                );
+
+            color: white;
+
+            line-height: 1.5;
+
+            font-size: 14px;
+
+            box-shadow:
+                0 6px 18px rgba(109, 93, 252, 0.17);
+        }
+
+
         .assistant-message {
             display: flex;
+
             justify-content: flex-start;
         }
 
+
         .assistant-bubble {
-            max-width: 80%;
-            background: white;
-            padding: 16px;
-            border-radius: 16px 16px 16px 4px;
-            border: 1px solid #e5e7eb;
-            line-height: 1.6;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            width:
+                min(
+                    100%,
+                    780px
+                );
+
+            padding: 18px 19px;
+
+            border:
+                1px solid rgba(220, 225, 236, 0.90);
+
+            border-radius:
+                18px
+                18px
+                18px
+                6px;
+
+            background:
+                rgba(255, 255, 255, 0.82);
+
+            backdrop-filter:
+                blur(15px);
+
+            line-height: 1.65;
+
+            font-size: 14px;
+
+            box-shadow:
+                var(--shadow-card);
         }
 
-        .sources {
-            margin-top: 14px;
-            padding-top: 12px;
-            border-top: 1px solid #e5e7eb;
-            font-size: 13px;
-            color: #6b7280;
-        }
 
-        .source {
-            margin-top: 6px;
-        }
-
-        .source strong {
-            color: #374151;
-        }
-
-        /* ================================
-           INPUT
-           ================================ */
-
-        .input-area {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: rgba(245, 247, 251, 0.96);
-            border-top: 1px solid #e5e7eb;
-            padding: 16px 20px;
-        }
-
-        .input-container {
-            max-width: 1200px;
-            margin: 0 auto;
+        .assistant-label {
             display: flex;
-            gap: 10px;
-            padding-left: 270px;
+            align-items: center;
+            justify-content: space-between;
+
+            gap: 12px;
+
+            margin-bottom: 11px;
+
+            font-size: 11px;
+            font-weight: 750;
+
+            color: var(--primary-dark);
         }
 
-        #question {
-            flex: 1;
-            padding: 14px 16px;
-            border: 1px solid #d1d5db;
-            border-radius: 12px;
-            font-size: 15px;
-            outline: none;
+
+        .assistant-identity {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            min-width: 0;
         }
 
-        #question:focus {
-            border-color: #2563eb;
+
+        .message-actions {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-shrink: 0;
         }
 
-        #askButton {
-            padding: 0 22px;
-            border: none;
-            border-radius: 12px;
-            background: #2563eb;
-            color: white;
-            font-size: 15px;
+
+        .message-action-button,
+        .context-copy-button {
+            border: 1px solid var(--border);
+            border-radius: 9px;
+            background: rgba(255, 255, 255, 0.62);
+            color: var(--text-secondary);
             cursor: pointer;
+            font-size: 10px;
+            font-weight: 700;
+            line-height: 1;
+            padding: 7px 9px;
+            transition:
+                background 0.16s ease,
+                border-color 0.16s ease,
+                color 0.16s ease,
+                transform 0.16s ease;
         }
 
-        #askButton:hover {
-            background: #1d4ed8;
+
+        .message-action-button:hover,
+        .context-copy-button:hover {
+            background: var(--surface-solid);
+            border-color: var(--border-strong);
+            color: var(--primary-dark);
+            transform: translateY(-1px);
         }
 
-        #askButton:disabled {
-            background: #9ca3af;
-            cursor: not-allowed;
+
+        .message-action-button.copied,
+        .context-copy-button.copied {
+            color: var(--green);
+            border-color: rgba(40, 169, 119, 0.34);
+            background: rgba(40, 169, 119, 0.08);
         }
 
-        .loading {
-            color: #6b7280;
+
+        .assistant-dot {
+            width: 8px;
+            height: 8px;
+
+            border-radius: 50%;
+
+            background: var(--primary);
+        }
+
+
+        /* =========================================
+           MARKDOWN ANSWER STYLING
+           ========================================= */
+
+
+        .answer-text {
+            overflow-wrap: anywhere;
+        }
+
+
+        .answer-text p {
+            margin:
+                0
+                0
+                10px;
+
+            line-height: 1.7;
+        }
+
+
+        .answer-text p:last-child {
+            margin-bottom: 0;
+        }
+
+
+        .answer-text strong {
+            font-weight: 750;
+
+            color: #202738;
+        }
+
+
+        .answer-text em {
             font-style: italic;
         }
 
-        /* ================================
-           MOBILE
-           ================================ */
 
-        @media (max-width: 800px) {
+        .answer-text h1,
+        .answer-text h2,
+        .answer-text h3,
+        .answer-text h4 {
+            margin:
+                16px
+                0
+                8px;
 
-            .main-layout {
+            line-height: 1.3;
+
+            color: #202738;
+        }
+
+
+        .answer-text h1 {
+            font-size: 20px;
+        }
+
+
+        .answer-text h2 {
+            font-size: 18px;
+        }
+
+
+        .answer-text h3 {
+            font-size: 16px;
+        }
+
+
+        .answer-text h4 {
+            font-size: 14px;
+        }
+
+
+        .answer-text ul,
+        .answer-text ol {
+            margin:
+                7px
+                0
+                12px;
+
+            padding-left: 24px;
+        }
+
+
+        .answer-text li {
+            margin-bottom: 5px;
+
+            line-height: 1.6;
+        }
+
+
+        .answer-text code {
+            padding:
+                2px
+                5px;
+
+            border-radius: 5px;
+
+            background: #f0f1f7;
+
+            color: #5549d8;
+
+            font-family:
+                Consolas,
+                Monaco,
+                monospace;
+
+            font-size: 0.92em;
+        }
+
+
+        .answer-text pre {
+            margin:
+                12px
+                0;
+
+            padding: 14px;
+
+            border:
+                1px solid #e0e3ec;
+
+            border-radius: 10px;
+
+            overflow-x: auto;
+
+            background: #202331;
+
+            color: #f3f5fb;
+
+            line-height: 1.5;
+        }
+
+
+        .answer-text pre code {
+            padding: 0;
+
+            background: transparent;
+
+            color: inherit;
+        }
+
+
+        .answer-text blockquote {
+            margin:
+                12px
+                0;
+
+            padding:
+                9px
+                13px;
+
+            border-left:
+                3px solid var(--primary);
+
+            background: #f7f5ff;
+
+            color: #555d70;
+        }
+
+
+        .sources {
+            margin-top: 15px;
+
+            padding-top: 13px;
+
+            border-top:
+                1px solid var(--border);
+        }
+
+
+        .sources-title {
+            margin-bottom: 8px;
+
+            color: var(--text-secondary);
+
+            font-size: 11px;
+            font-weight: 750;
+
+            text-transform: uppercase;
+
+            letter-spacing: 0.5px;
+        }
+
+
+        .sources-list {
+            display: flex;
+
+            flex-wrap: wrap;
+
+            gap: 7px;
+        }
+
+
+        .source {
+            display: inline-flex;
+            align-items: center;
+
+            gap: 6px;
+
+            max-width: 100%;
+
+            padding: 7px 10px;
+
+            border:
+                1px solid #dedbef;
+
+            border-radius: 10px;
+
+            background: #f7f5ff;
+
+            color: #59516f;
+
+            font-size: 11px;
+            font-weight: 600;
+
+            overflow-wrap: anywhere;
+        }
+
+
+        .source-icon {
+            color: #e05260;
+        }
+
+
+        .loading {
+            color: var(--text-secondary);
+        }
+
+
+        .loading-row {
+            display: flex;
+            align-items: center;
+
+            gap: 8px;
+        }
+
+
+        .loading-dots {
+            display: inline-flex;
+
+            gap: 3px;
+        }
+
+
+        .loading-dot {
+            width: 5px;
+            height: 5px;
+
+            border-radius: 50%;
+
+            background: var(--primary);
+
+            animation:
+                pulseDot
+                1.2s
+                infinite
+                ease-in-out;
+        }
+
+
+        .loading-dot:nth-child(2) {
+            animation-delay: 0.15s;
+        }
+
+
+        .loading-dot:nth-child(3) {
+            animation-delay: 0.30s;
+        }
+
+
+        @keyframes pulseDot {
+
+            0%,
+            80%,
+            100% {
+                opacity: 0.25;
+
+                transform: scale(0.8);
+            }
+
+            40% {
+                opacity: 1;
+
+                transform: scale(1);
+            }
+
+        }
+
+
+        /* =========================================
+           COMPOSER
+           ========================================= */
+
+
+        .composer-area {
+            position: fixed;
+
+            left: var(--sidebar-width);
+            right: var(--context-width);
+            bottom: 0;
+
+            padding:
+                18px
+                28px
+                20px;
+
+            z-index: 10;
+
+            background:
+                linear-gradient(
+                    to top,
+                    rgba(243, 245, 251, 1) 45%,
+                    rgba(243, 245, 251, 0.92) 75%,
+                    rgba(243, 245, 251, 0)
+                );
+        }
+
+
+        .composer {
+            max-width: 900px;
+
+            margin: 0 auto;
+
+            display: flex;
+            align-items: center;
+
+            gap: 10px;
+
+            padding: 8px;
+
+            border:
+                1px solid rgba(210, 216, 229, 0.95);
+
+            border-radius: 17px;
+
+            background:
+                rgba(255, 255, 255, 0.92);
+
+            backdrop-filter:
+                blur(20px);
+
+            box-shadow:
+                0 10px 30px rgba(40, 50, 80, 0.10);
+        }
+
+
+        #question {
+            flex: 1;
+
+            min-width: 0;
+
+            border: none;
+
+            outline: none;
+
+            padding:
+                8px
+                10px;
+
+            color: var(--text-primary);
+
+            background: transparent;
+
+            font-size: 14px;
+        }
+
+
+        #question::placeholder {
+            color: #a0a8b5;
+        }
+
+
+        #askButton {
+            width: 42px;
+            height: 42px;
+
+            flex-shrink: 0;
+
+            border: none;
+
+            border-radius: 12px;
+
+            display: grid;
+            place-items: center;
+
+            color: white;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    var(--primary),
+                    var(--blue)
+                );
+
+            cursor: pointer;
+
+            font-size: 18px;
+        }
+
+
+        #askButton:hover {
+            transform: translateY(-1px);
+        }
+
+
+        #askButton:disabled {
+            opacity: 0.45;
+
+            cursor: not-allowed;
+
+            transform: none;
+        }
+
+
+        /* =========================================
+           CONTEXT PANEL
+           ========================================= */
+
+
+        .context-panel {
+            position: sticky;
+
+            top: 0;
+
+            height: 100vh;
+
+            padding:
+                22px
+                18px;
+
+            overflow-y: auto;
+
+            border-left:
+                1px solid rgba(218, 223, 235, 0.85);
+
+            background:
+                rgba(250, 251, 255, 0.72);
+
+            backdrop-filter:
+                blur(20px);
+        }
+
+
+        .context-header {
+            margin-bottom: 18px;
+        }
+
+
+        .context-title {
+            font-size: 15px;
+
+            font-weight: 750;
+        }
+
+
+        .context-subtitle {
+            margin-top: 4px;
+
+            color: var(--text-secondary);
+
+            font-size: 11px;
+
+            line-height: 1.4;
+        }
+
+
+        .context-card {
+            padding: 14px;
+
+            border:
+                1px solid var(--border);
+
+            border-radius: 15px;
+
+            background:
+                rgba(255, 255, 255, 0.76);
+
+            box-shadow:
+                0 4px 16px rgba(40, 50, 80, 0.04);
+
+            margin-bottom: 11px;
+        }
+
+
+        .context-card-label {
+            color: var(--text-muted);
+
+            font-size: 10px;
+            font-weight: 750;
+
+            text-transform: uppercase;
+
+            letter-spacing: 0.6px;
+        }
+
+
+        .context-document {
+            margin-top: 8px;
+
+            display: flex;
+            align-items: flex-start;
+
+            gap: 9px;
+        }
+
+
+        .context-document-icon {
+            width: 30px;
+            height: 30px;
+
+            border-radius: 9px;
+
+            flex-shrink: 0;
+
+            display: grid;
+            place-items: center;
+
+            color: #e05260;
+
+            background: #fff0f1;
+
+            font-size: 12px;
+            font-weight: 750;
+        }
+
+
+        .context-document-name {
+            min-width: 0;
+
+            font-size: 12px;
+            font-weight: 650;
+
+            color: #444d5d;
+
+            overflow-wrap: anywhere;
+        }
+
+
+
+
+        .context-evidence {
+            margin-top: 12px;
+            padding-top: 11px;
+            border-top: 1px solid var(--border);
+        }
+
+        .context-evidence-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+
+
+        .context-evidence-header .context-evidence-label {
+            margin-bottom: 0;
+        }
+
+
+        .context-evidence-label {
+            margin-bottom: 7px;
+            color: var(--text-muted);
+            font-size: 10px;
+            font-weight: 750;
+            text-transform: uppercase;
+            letter-spacing: 0.55px;
+        }
+
+        .context-evidence-preview {
+            color: var(--text-secondary);
+            font-size: 11px;
+            line-height: 1.55;
+            white-space: pre-wrap;
+            overflow-wrap: anywhere;
+        }
+
+        .context-evidence details {
+            margin-top: 8px;
+        }
+
+        .context-evidence summary {
+            color: var(--primary-dark);
+            cursor: pointer;
+            font-size: 10px;
+            font-weight: 700;
+            user-select: none;
+        }
+
+        .context-evidence-full {
+            margin-top: 8px;
+            padding: 9px 10px;
+            border-radius: 9px;
+            background: var(--surface-soft);
+            color: var(--text-secondary);
+            font-size: 10px;
+            line-height: 1.55;
+            white-space: pre-wrap;
+            overflow-wrap: anywhere;
+        }
+
+        .context-evidence-loading,
+        .context-evidence-error {
+            color: var(--text-muted);
+            font-size: 10px;
+            line-height: 1.45;
+        }
+
+        .context-evidence-error {
+            color: var(--red);
+        }
+        .context-document-note {
+            margin-top: 3px;
+
+            font-size: 10px;
+
+            color: var(--text-muted);
+        }
+
+
+        .context-empty {
+            padding: 20px 10px;
+
+            text-align: center;
+
+            color: var(--text-muted);
+
+            font-size: 11px;
+
+            line-height: 1.5;
+        }
+
+
+        .context-empty-icon {
+            width: 42px;
+            height: 42px;
+
+            margin:
+                0
+                auto
+                10px;
+
+            display: grid;
+            place-items: center;
+
+            border-radius: 13px;
+
+            background: var(--primary-soft);
+
+            color: var(--primary);
+
+            font-weight: 700;
+        }
+
+
+        .grounding-card {
+            margin-top: 18px;
+
+            padding: 13px;
+
+            border:
+                1px solid #d7eee4;
+
+            border-radius: 14px;
+
+            background:
+                rgba(237, 250, 244, 0.85);
+        }
+
+
+        .grounding-title {
+            font-size: 11px;
+
+            font-weight: 750;
+
+            color: #167757;
+        }
+
+
+        .grounding-text {
+            margin-top: 5px;
+
+            color: #5c756b;
+
+            font-size: 10px;
+
+            line-height: 1.45;
+        }
+
+
+        /* =========================================
+           SCROLLBAR
+           ========================================= */
+
+
+        * {
+            scrollbar-width: thin;
+
+            scrollbar-color:
+                #d4d9e4
+                transparent;
+        }
+
+
+        *::-webkit-scrollbar {
+            width: 6px;
+        }
+
+
+        *::-webkit-scrollbar-thumb {
+            background: #d4d9e4;
+
+            border-radius: 999px;
+        }
+
+
+        /* =========================================
+           V2 SETTINGS / THEME / DEVELOPER MODE
+           ========================================= */
+
+        .workspace-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        .header-tool-button {
+            height: 34px;
+            padding: 0 11px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            background: var(--surface);
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: background 0.16s ease, border-color 0.16s ease, color 0.16s ease;
+        }
+
+        .header-tool-button:hover {
+            border-color: var(--border-strong);
+            color: var(--text-primary);
+            background: var(--surface-solid);
+        }
+
+        .header-tool-button.active {
+            color: var(--primary-dark);
+            background: var(--primary-soft);
+            border-color: #cfc9ff;
+        }
+
+        .developer-details {
+            margin-top: 5px;
+            padding-top: 5px;
+            border-top: 1px dashed var(--border);
+            color: var(--text-muted);
+            font-size: 10px;
+            line-height: 1.45;
+        }
+
+        .developer-details code {
+            font-family: Consolas, Monaco, monospace;
+            color: var(--primary-dark);
+        }
+
+        .developer-context-card {
+            border-style: dashed;
+        }
+
+        .developer-mode-note {
+            margin-top: 10px;
+            padding: 10px 11px;
+            border-radius: 11px;
+            background: var(--primary-soft);
+            color: var(--text-secondary);
+            font-size: 10px;
+            line-height: 1.45;
+        }
+
+        /* Dark theme uses the same design language, only with darker surfaces. */
+
+        html[data-theme="dark"] {
+            color-scheme: dark;
+
+            --bg: #0f1320;
+            --surface: rgba(27, 33, 49, 0.86);
+            --surface-solid: #1b2131;
+            --surface-soft: #171c2a;
+
+            --border: #2e364a;
+            --border-strong: #3b465d;
+
+            --text-primary: #edf1f8;
+            --text-secondary: #a8b1c3;
+            --text-muted: #778197;
+
+            --primary: #8b7cff;
+            --primary-dark: #b4aaff;
+            --primary-soft: #292544;
+
+            --blue: #6e91ff;
+            --green: #42be8d;
+            --red: #ef7a84;
+
+            --shadow-card: 0 4px 18px rgba(0, 0, 0, 0.22);
+        }
+
+        html[data-theme="dark"] body {
+            background:
+                radial-gradient(
+                    circle at 15% 10%,
+                    rgba(139, 124, 255, 0.11),
+                    transparent 28%
+                ),
+                radial-gradient(
+                    circle at 85% 5%,
+                    rgba(79, 124, 255, 0.09),
+                    transparent 25%
+                ),
+                var(--bg);
+        }
+
+        html[data-theme="dark"] .sidebar,
+        html[data-theme="dark"] .context-panel {
+            background: rgba(17, 22, 34, 0.82);
+            border-color: var(--border);
+        }
+
+        html[data-theme="dark"] .workspace-header {
+            background: rgba(15, 19, 32, 0.76);
+            border-color: var(--border);
+        }
+
+        html[data-theme="dark"] .stat-card,
+        html[data-theme="dark"] .welcome,
+        html[data-theme="dark"] .assistant-bubble,
+        html[data-theme="dark"] .context-card {
+            background: rgba(27, 33, 49, 0.80);
+            border-color: var(--border);
+        }
+
+        html[data-theme="dark"] .document-item {
+            background: rgba(27, 33, 49, 0.48);
+        }
+
+        html[data-theme="dark"] .document-item:hover,
+        html[data-theme="dark"] .chat-history-button:hover {
+            background: rgba(35, 42, 61, 0.90);
+        }
+
+        html[data-theme="dark"] .document-name,
+        html[data-theme="dark"] .context-document-name,
+        html[data-theme="dark"] .answer-text strong,
+        html[data-theme="dark"] .answer-text h1,
+        html[data-theme="dark"] .answer-text h2,
+        html[data-theme="dark"] .answer-text h3,
+        html[data-theme="dark"] .answer-text h4 {
+            color: var(--text-primary);
+        }
+
+        html[data-theme="dark"] .chat-history-button {
+            color: var(--text-secondary);
+        }
+
+        html[data-theme="dark"] .source,
+        html[data-theme="dark"] .answer-text blockquote {
+            background: #25223a;
+            border-color: #3d3858;
+            color: #c7c1df;
+        }
+
+        html[data-theme="dark"] .answer-text code {
+            background: #242a3a;
+            color: #c3baff;
+        }
+
+        html[data-theme="dark"] .answer-text pre {
+            background: #090c13;
+            border-color: var(--border);
+        }
+
+
+        html[data-theme="dark"] .message-action-button,
+        html[data-theme="dark"] .context-copy-button {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: var(--border);
+            color: var(--text-secondary);
+        }
+
+
+        html[data-theme="dark"] .message-action-button:hover,
+        html[data-theme="dark"] .context-copy-button:hover {
+            background: rgba(255, 255, 255, 0.09);
+            color: var(--text-primary);
+        }
+
+
+        html[data-theme="dark"] .composer-area {
+            background:
+                linear-gradient(
+                    to top,
+                    rgba(15, 19, 32, 1) 45%,
+                    rgba(15, 19, 32, 0.92) 75%,
+                    rgba(15, 19, 32, 0)
+                );
+        }
+
+        html[data-theme="dark"] .composer {
+            background: rgba(27, 33, 49, 0.94);
+            border-color: var(--border-strong);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.30);
+        }
+
+        html[data-theme="dark"] #question {
+            color: var(--text-primary);
+        }
+
+        html[data-theme="dark"] #question::placeholder {
+            color: #737f96;
+        }
+
+        html[data-theme="dark"] .status-chip {
+            background: #17382d;
+            color: #75d8b0;
+        }
+
+        html[data-theme="dark"] .grounding-card {
+            background: rgba(21, 55, 44, 0.78);
+            border-color: #285a49;
+        }
+
+        html[data-theme="dark"] .grounding-title {
+            color: #78d9b1;
+        }
+
+        html[data-theme="dark"] .grounding-text {
+            color: #9abfaf;
+        }
+
+        html[data-theme="dark"] .document-icon,
+        html[data-theme="dark"] .context-document-icon {
+            background: #3a252c;
+            color: #ff8b95;
+        }
+
+        html[data-theme="dark"] .add-document-button {
+            background: #292544;
+            border-color: #514b76;
+        }
+
+        html[data-theme="dark"] .add-document-button:hover {
+            background: #332e53;
+        }
+
+        @media (max-width: 720px) {
+            .workspace-actions {
+                gap: 6px;
+            }
+
+            .header-tool-button {
+                padding: 0 9px;
+            }
+
+            .header-tool-label {
+                display: none;
+            }
+        }
+
+        /* =========================================
+           RESPONSIVE
+           ========================================= */
+
+
+        @media (max-width: 1180px) {
+
+            :root {
+                --context-width: 250px;
+                --sidebar-width: 250px;
+            }
+
+            .stats-grid {
+                grid-template-columns:
+                    repeat(
+                        2,
+                        minmax(0, 1fr)
+                    );
+            }
+
+        }
+
+
+        @media (max-width: 920px) {
+
+            .app-shell {
+                grid-template-columns:
+                    240px
+                    minmax(0, 1fr);
+            }
+
+            :root {
+                --sidebar-width: 240px;
+                --context-width: 0px;
+            }
+
+            .context-panel {
+                display: none;
+            }
+
+            .composer-area {
+                right: 0;
+            }
+
+        }
+
+
+        @media (max-width: 720px) {
+
+            .app-shell {
                 display: block;
             }
 
             .sidebar {
+                position: static;
+
                 width: 100%;
+                height: auto;
+
+                max-height: none;
+
                 border-right: none;
-                border-bottom: 1px solid #e5e7eb;
-                max-height: 220px;
+
+                border-bottom:
+                    1px solid var(--border);
             }
 
-            #chatHistory {
-                max-height: 120px;
+            .chat-section {
+                max-height: 180px;
             }
 
-            .input-container {
-                padding-left: 0;
+            .knowledge-section {
+                max-height: none;
+            }
+
+            #documentsList {
+                max-height: 180px;
+            }
+
+            .workspace-header {
+                position: static;
+
+                height: auto;
+
+                padding:
+                    16px
+                    18px;
+            }
+
+            .workspace-scroll {
+                padding:
+                    20px
+                    16px
+                    120px;
+            }
+
+            .stats-grid {
+                grid-template-columns:
+                    repeat(
+                        2,
+                        minmax(0, 1fr)
+                    );
+            }
+
+            .composer-area {
+                left: 0;
+
+                padding:
+                    14px
+                    15px;
+            }
+
+            .user-bubble {
+                max-width: 88%;
             }
 
         }
 
-        @media (max-width: 600px) {
 
-            .upload-row {
-                flex-direction: column;
-                align-items: stretch;
+        @media (max-width: 480px) {
+
+            .stats-grid {
+                grid-template-columns:
+                    1fr
+                    1fr;
             }
 
-            #uploadButton {
-                width: 100%;
+            .welcome-title {
+                font-size: 24px;
             }
 
-            .user-bubble,
-            .assistant-bubble {
-                max-width: 90%;
-            }
-
-            #askButton {
-                padding: 0 16px;
-            }
-
-            .document-item {
-                align-items: flex-start;
+            .stat-value {
+                font-size: 21px;
             }
 
         }
@@ -508,117 +2424,302 @@
 <body>
 
 
-<div class="app">
+<div class="app-shell">
 
 
-    <header>
-
-        <h1>
-            KnowledgeHub AI
-        </h1>
-
-        <p>
-            Ask questions about your uploaded documents.
-        </p>
-
-    </header>
+    <aside class="sidebar">
 
 
-    <div class="main-layout">
+        <div class="brand">
 
-
-        <!-- CHAT HISTORY -->
-
-        <aside class="sidebar">
-
-            <button
-                id="newChatButton"
-                class="new-chat-button"
-            >
-                + New Chat
-            </button>
-
-            <div class="history-title">
-                Chat History
+            <div class="brand-icon">
+                K
             </div>
+
+            <div class="brand-text">
+
+                <div class="brand-title">
+                    KnowledgeHub AI
+                </div>
+
+                <div class="brand-version">
+                    Version 2
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <button
+            id="newChatButton"
+            class="new-chat-button"
+        >
+            + New Chat
+        </button>
+
+
+        <section
+            class="sidebar-section chat-section"
+        >
+
+            <div class="sidebar-heading-row">
+
+                <div class="sidebar-heading">
+                    Conversations
+                </div>
+
+            </div>
+
 
             <div id="chatHistory">
 
                 <div class="empty-history">
-                    Loading chats...
+                    Loading conversations...
                 </div>
 
             </div>
 
-        </aside>
+        </section>
 
 
-        <!-- MAIN CONTENT -->
+        <section
+            class="sidebar-section knowledge-section"
+        >
 
-        <div class="content">
+            <div class="sidebar-heading-row">
+
+                <div class="sidebar-heading">
+                    Knowledge Base
+                </div>
 
 
-            <!-- UPLOAD -->
+                <button
+                    id="refreshDocumentsButton"
+                    class="tiny-button"
+                    title="Refresh documents"
+                >
+                    ↻
+                </button>
 
-            <section class="upload-section">
+            </div>
 
-                <h2>
-                    Upload Document
-                </h2>
 
-                <div class="upload-row">
+            <input
+                id="fileInput"
+                type="file"
+                accept=".pdf,application/pdf"
+            >
 
-                    <input
-                        id="fileInput"
-                        type="file"
-                        accept=".pdf,application/pdf"
-                    >
 
-                    <button id="uploadButton">
-                        Upload
-                    </button>
+            <div class="knowledge-actions">
+
+                <button
+                    id="selectFileButton"
+                    class="add-document-button"
+                    title="Choose PDF document"
+                >
+                    + Add PDF
+                </button>
+
+
+                <button
+                    id="uploadButton"
+                    title="Upload selected document"
+                >
+                    Upload
+                </button>
+
+            </div>
+
+
+            <div id="uploadStatus"></div>
+
+
+            <div id="documentsList">
+
+                <div class="empty-documents">
+                    Loading documents...
+                </div>
+
+            </div>
+
+        </section>
+
+
+    </aside>
+
+
+    <section class="workspace">
+
+
+        <header class="workspace-header">
+
+            <div>
+
+                <div class="workspace-title">
+                    Knowledge Workspace
+                </div>
+
+                <div class="workspace-subtitle">
+                    Ask questions grounded in your documents.
+                </div>
+
+            </div>
+
+
+            <div class="workspace-actions">
+
+                <div class="status-chip">
+
+                    <span class="status-dot"></span>
+
+                    Grounded mode
 
                 </div>
 
-                <div id="uploadStatus"></div>
+                <button
+                    id="themeToggleButton"
+                    class="header-tool-button"
+                    type="button"
+                    title="Switch theme"
+                >
+                    <span id="themeToggleIcon">☾</span>
+                    <span
+                        id="themeToggleLabel"
+                        class="header-tool-label"
+                    >
+                        Dark
+                    </span>
+                </button>
+
+                <button
+                    id="developerModeButton"
+                    class="header-tool-button"
+                    type="button"
+                    title="Show technical retrieval details"
+                >
+                    <span>&lt;/&gt;</span>
+                    <span
+                        id="developerModeLabel"
+                        class="header-tool-label"
+                    >
+                        Dev Off
+                    </span>
+                </button>
+
+            </div>
+
+        </header>
+
+
+        <div
+            id="workspaceScroll"
+            class="workspace-scroll"
+        >
+
+
+            <section class="welcome-panel">
+
+                <div class="welcome-eyebrow">
+                    KnowledgeHub AI V2
+                </div>
+
+                <h1 class="welcome-title">
+                    Your documents, made conversational.
+                </h1>
+
+                <div class="welcome-description">
+                    Search your local knowledge base,
+                    retrieve supporting document context,
+                    and generate grounded answers.
+                </div>
 
             </section>
 
 
-            <!-- DOCUMENT LIBRARY -->
+            <section class="stats-grid">
 
-            <section class="documents-section">
 
-                <div class="documents-header">
+                <div class="stat-card">
 
-                    <h2>
+                    <div class="stat-label">
                         Documents
-                    </h2>
+                    </div>
 
-                    <button
-                        id="refreshDocumentsButton"
-                        class="refresh-documents-button"
+                    <div
+                        id="documentCount"
+                        class="stat-value"
                     >
-                        Refresh
-                    </button>
+                        —
+                    </div>
 
-                </div>
-
-                <div
-                    id="documentsList"
-                    class="documents-list"
-                >
-
-                    <div class="empty-documents">
-                        Loading documents...
+                    <div class="stat-note">
+                        In knowledge base
                     </div>
 
                 </div>
 
+
+                <div class="stat-card">
+
+                    <div class="stat-label">
+                        Conversations
+                    </div>
+
+                    <div
+                        id="chatCount"
+                        class="stat-value"
+                    >
+                        —
+                    </div>
+
+                    <div class="stat-note">
+                        Saved sessions
+                    </div>
+
+                </div>
+
+
+                <div class="stat-card">
+
+                    <div class="stat-label">
+                        Current Session
+                    </div>
+
+                    <div
+                        id="sessionDisplay"
+                        class="stat-value"
+                    >
+                        —
+                    </div>
+
+                    <div class="stat-note">
+                        Active conversation
+                    </div>
+
+                </div>
+
+
+                <div class="stat-card">
+
+                    <div class="stat-label">
+                        Answer Mode
+                    </div>
+
+                    <div class="stat-value">
+                        RAG
+                    </div>
+
+                    <div class="stat-note">
+                        Document grounded
+                    </div>
+
+                </div>
+
+
             </section>
 
-
-            <!-- CHAT -->
 
             <main id="chat">
 
@@ -627,12 +2728,19 @@
                     id="welcome"
                 >
 
+                    <div class="welcome-icon">
+                        K
+                    </div>
+
                     <h2>
-                        Welcome to KnowledgeHub
+                        Ask your knowledge base
                     </h2>
 
                     <p>
-                        Upload a PDF and ask questions about it.
+                        Add a PDF from the Knowledge Base panel,
+                        then ask a question about its contents.
+                        KnowledgeHub will use retrieved document
+                        context to answer.
                     </p>
 
                 </div>
@@ -643,25 +2751,89 @@
         </div>
 
 
-    </div>
+    </section>
+
+
+    <aside class="context-panel">
+
+
+        <div class="context-header">
+
+            <div class="context-title">
+                Sources & Context
+            </div>
+
+            <div class="context-subtitle">
+                Documents supporting the latest answer.
+            </div>
+
+        </div>
+
+
+        <div id="contextContent">
+
+            <div class="context-empty">
+
+                <div class="context-empty-icon">
+                    K
+                </div>
+
+                Ask a question to see which
+                documents support the answer.
+
+            </div>
+
+        </div>
+
+
+        <div class="grounding-card">
+
+            <div class="grounding-title">
+                Grounded responses
+            </div>
+
+            <div class="grounding-text">
+                KnowledgeHub is designed to answer from
+                retrieved document evidence and decline
+                unsupported questions.
+            </div>
+
+        </div>
+
+        <div
+            id="developerModeNote"
+            class="developer-mode-note"
+            hidden
+        >
+            <strong>Developer Mode</strong><br>
+            Technical retrieval metadata is visible.
+            Chunk indexes and relevance values are debugging
+            information, not model confidence scores.
+        </div>
+
+
+    </aside>
 
 
 </div>
 
 
-<div class="input-area">
+<div class="composer-area">
 
-    <div class="input-container">
+    <div class="composer">
 
         <input
             id="question"
             type="text"
-            placeholder="Ask a question..."
+            placeholder="Ask anything about your documents..."
             autocomplete="off"
         >
 
-        <button id="askButton">
-            Ask
+        <button
+            id="askButton"
+            title="Ask KnowledgeHub"
+        >
+            ↑
         </button>
 
     </div>
@@ -677,36 +2849,144 @@ const API_URL =
 
 
 const questionInput =
-    document.getElementById("question");
+    document.getElementById(
+        "question"
+    );
+
 
 const askButton =
-    document.getElementById("askButton");
+    document.getElementById(
+        "askButton"
+    );
+
 
 const chat =
-    document.getElementById("chat");
+    document.getElementById(
+        "chat"
+    );
+
+
+const workspaceScroll =
+    document.getElementById(
+        "workspaceScroll"
+    );
+
 
 const fileInput =
-    document.getElementById("fileInput");
+    document.getElementById(
+        "fileInput"
+    );
+
+
+const selectFileButton =
+    document.getElementById(
+        "selectFileButton"
+    );
+
 
 const uploadButton =
-    document.getElementById("uploadButton");
+    document.getElementById(
+        "uploadButton"
+    );
+
 
 const uploadStatus =
-    document.getElementById("uploadStatus");
+    document.getElementById(
+        "uploadStatus"
+    );
+
 
 const chatHistory =
-    document.getElementById("chatHistory");
+    document.getElementById(
+        "chatHistory"
+    );
+
 
 const newChatButton =
-    document.getElementById("newChatButton");
+    document.getElementById(
+        "newChatButton"
+    );
+
 
 const documentsList =
-    document.getElementById("documentsList");
+    document.getElementById(
+        "documentsList"
+    );
+
 
 const refreshDocumentsButton =
     document.getElementById(
         "refreshDocumentsButton"
     );
+
+
+const contextContent =
+    document.getElementById(
+        "contextContent"
+    );
+
+
+const documentCount =
+    document.getElementById(
+        "documentCount"
+    );
+
+
+const chatCount =
+    document.getElementById(
+        "chatCount"
+    );
+
+
+const sessionDisplay =
+    document.getElementById(
+        "sessionDisplay"
+    );
+
+
+const themeToggleButton =
+    document.getElementById(
+        "themeToggleButton"
+    );
+
+
+const themeToggleIcon =
+    document.getElementById(
+        "themeToggleIcon"
+    );
+
+
+const themeToggleLabel =
+    document.getElementById(
+        "themeToggleLabel"
+    );
+
+
+const developerModeButton =
+    document.getElementById(
+        "developerModeButton"
+    );
+
+
+const developerModeLabel =
+    document.getElementById(
+        "developerModeLabel"
+    );
+
+
+const developerModeNote =
+    document.getElementById(
+        "developerModeNote"
+    );
+
+
+let developerModeEnabled =
+    localStorage.getItem(
+        "knowledgehub_developer_mode"
+    ) === "true";
+
+
+let latestSources = [];
 
 
 /* =========================================
@@ -722,7 +3002,9 @@ let currentSessionId =
 
 function saveCurrentSession() {
 
-    if (currentSessionId !== null) {
+    if (
+        currentSessionId !== null
+    ) {
 
         localStorage.setItem(
             "knowledgehub_current_session",
@@ -731,16 +3013,46 @@ function saveCurrentSession() {
 
     }
 
+
+    updateSessionDisplay();
+
 }
 
 
 function clearCurrentSession() {
 
-    currentSessionId = null;
+    currentSessionId =
+        null;
+
 
     localStorage.removeItem(
         "knowledgehub_current_session"
     );
+
+
+    updateSessionDisplay();
+
+}
+
+
+function updateSessionDisplay() {
+
+    if (
+        currentSessionId === null ||
+        currentSessionId === undefined ||
+        currentSessionId === ""
+    ) {
+
+        sessionDisplay.textContent =
+            "New";
+
+    }
+    else {
+
+        sessionDisplay.textContent =
+            `#${currentSessionId}`;
+
+    }
 
 }
 
@@ -759,6 +3071,7 @@ async function loadChatHistory() {
                 `${API_URL}/chats`
             );
 
+
         if (!response.ok) {
 
             throw new Error(
@@ -767,11 +3080,21 @@ async function loadChatHistory() {
 
         }
 
+
         const data =
             await response.json();
 
+
+        const chats =
+            data.chats || [];
+
+
+        chatCount.textContent =
+            chats.length;
+
+
         renderChatHistory(
-            data.chats || []
+            chats
         );
 
     }
@@ -782,9 +3105,14 @@ async function loadChatHistory() {
             error
         );
 
+
+        chatCount.textContent =
+            "—";
+
+
         chatHistory.innerHTML = `
             <div class="empty-history">
-                Unable to load chat history.
+                Unable to load conversations.
             </div>
         `;
 
@@ -793,9 +3121,13 @@ async function loadChatHistory() {
 }
 
 
-function renderChatHistory(chats) {
+function renderChatHistory(
+    chats
+) {
 
-    chatHistory.innerHTML = "";
+    chatHistory.innerHTML =
+        "";
+
 
     if (
         !chats ||
@@ -804,9 +3136,10 @@ function renderChatHistory(chats) {
 
         chatHistory.innerHTML = `
             <div class="empty-history">
-                No previous chats.
+                No conversations yet.
             </div>
         `;
+
 
         return;
 
@@ -817,14 +3150,20 @@ function renderChatHistory(chats) {
         chatItem => {
 
             const wrapper =
-                document.createElement("div");
+                document.createElement(
+                    "div"
+                );
+
 
             wrapper.className =
                 "chat-history-item";
 
 
             const button =
-                document.createElement("button");
+                document.createElement(
+                    "button"
+                );
+
 
             button.className =
                 "chat-history-button";
@@ -865,16 +3204,21 @@ function renderChatHistory(chats) {
 
 
             const deleteButton =
-                document.createElement("button");
+                document.createElement(
+                    "button"
+                );
+
 
             deleteButton.className =
                 "delete-chat-button";
 
+
             deleteButton.textContent =
                 "×";
 
+
             deleteButton.title =
-                "Delete chat";
+                "Delete conversation";
 
 
             deleteButton.addEventListener(
@@ -882,6 +3226,7 @@ function renderChatHistory(chats) {
                 event => {
 
                     event.stopPropagation();
+
 
                     deleteChat(
                         chatItem.id
@@ -895,9 +3240,11 @@ function renderChatHistory(chats) {
                 button
             );
 
+
             wrapper.appendChild(
                 deleteButton
             );
+
 
             chatHistory.appendChild(
                 wrapper
@@ -922,9 +3269,11 @@ async function createNewChat() {
             await fetch(
                 `${API_URL}/chats`,
                 {
-                    method: "POST"
+                    method:
+                        "POST"
                 }
             );
+
 
         if (!response.ok) {
 
@@ -934,6 +3283,7 @@ async function createNewChat() {
 
         }
 
+
         const data =
             await response.json();
 
@@ -941,12 +3291,17 @@ async function createNewChat() {
         currentSessionId =
             data.id;
 
+
         saveCurrentSession();
 
 
         clearChat();
 
+        clearContextPanel();
+
+
         await loadChatHistory();
+
 
         questionInput.focus();
 
@@ -957,6 +3312,7 @@ async function createNewChat() {
             "Unable to create chat:",
             error
         );
+
 
         alert(
             "Unable to create a new chat. " +
@@ -973,7 +3329,9 @@ async function createNewChat() {
    ========================================= */
 
 
-async function loadChat(sessionId) {
+async function loadChat(
+    sessionId
+) {
 
     try {
 
@@ -982,6 +3340,7 @@ async function loadChat(sessionId) {
                 `${API_URL}/chats/${sessionId}`
             );
 
+
         if (!response.ok) {
 
             throw new Error(
@@ -989,6 +3348,7 @@ async function loadChat(sessionId) {
             );
 
         }
+
 
         const data =
             await response.json();
@@ -1000,8 +3360,9 @@ async function loadChat(sessionId) {
 
             alert(
                 data.message ||
-                "Unable to load chat."
+                "Unable to load conversation."
             );
+
 
             return;
 
@@ -1011,10 +3372,13 @@ async function loadChat(sessionId) {
         currentSessionId =
             data.id;
 
+
         saveCurrentSession();
 
 
         clearChat();
+
+        clearContextPanel();
 
 
         if (
@@ -1028,6 +3392,7 @@ async function loadChat(sessionId) {
                     addUserMessage(
                         message.question
                     );
+
 
                     addAssistantMessage({
 
@@ -1052,6 +3417,7 @@ async function loadChat(sessionId) {
 
         await loadChatHistory();
 
+
         questionInput.focus();
 
     }
@@ -1061,6 +3427,7 @@ async function loadChat(sessionId) {
             "Unable to load chat:",
             error
         );
+
 
         alert(
             "Unable to load this conversation."
@@ -1076,12 +3443,15 @@ async function loadChat(sessionId) {
    ========================================= */
 
 
-async function deleteChat(sessionId) {
+async function deleteChat(
+    sessionId
+) {
 
     const confirmed =
         confirm(
-            "Delete this chat and all its messages?"
+            "Delete this conversation and all its messages?"
         );
+
 
     if (!confirmed) {
 
@@ -1096,9 +3466,11 @@ async function deleteChat(sessionId) {
             await fetch(
                 `${API_URL}/chats/${sessionId}`,
                 {
-                    method: "DELETE"
+                    method:
+                        "DELETE"
                 }
             );
+
 
         if (!response.ok) {
 
@@ -1117,8 +3489,9 @@ async function deleteChat(sessionId) {
 
             alert(
                 data.message ||
-                "Unable to delete chat."
+                "Unable to delete conversation."
             );
+
 
             return;
 
@@ -1134,6 +3507,8 @@ async function deleteChat(sessionId) {
 
             clearChat();
 
+            clearContextPanel();
+
         }
 
 
@@ -1147,8 +3522,9 @@ async function deleteChat(sessionId) {
             error
         );
 
+
         alert(
-            "Unable to delete chat."
+            "Unable to delete conversation."
         );
 
     }
@@ -1157,13 +3533,15 @@ async function deleteChat(sessionId) {
 
 
 /* =========================================
-   RESTORE CURRENT CHAT AFTER REFRESH
+   RESTORE CURRENT CHAT
    ========================================= */
 
 
 async function restoreCurrentChat() {
 
     if (!currentSessionId) {
+
+        updateSessionDisplay();
 
         return;
 
@@ -1207,10 +3585,13 @@ async function restoreCurrentChat() {
         currentSessionId =
             data.id;
 
+
         saveCurrentSession();
 
 
         clearChat();
+
+        clearContextPanel();
 
 
         if (
@@ -1224,6 +3605,7 @@ async function restoreCurrentChat() {
                     addUserMessage(
                         message.question
                     );
+
 
                     addAssistantMessage({
 
@@ -1256,6 +3638,7 @@ async function restoreCurrentChat() {
             error
         );
 
+
         clearCurrentSession();
 
         clearChat();
@@ -1273,10 +3656,15 @@ async function restoreCurrentChat() {
 async function loadDocuments() {
 
     documentsList.innerHTML = `
-        <div class="empty-documents">
-            Loading documents...
+        <div class="knowledge-loading">
+            <span class="knowledge-spinner"></span>
+            <span>Loading knowledge base...</span>
         </div>
     `;
+
+
+    refreshDocumentsButton.disabled =
+        true;
 
 
     try {
@@ -1300,8 +3688,16 @@ async function loadDocuments() {
             await response.json();
 
 
+        const documents =
+            data.documents || [];
+
+
+        documentCount.textContent =
+            documents.length;
+
+
         renderDocuments(
-            data.documents || []
+            documents
         );
 
     }
@@ -1312,20 +3708,63 @@ async function loadDocuments() {
             error
         );
 
+
+        documentCount.textContent =
+            "—";
+
+
         documentsList.innerHTML = `
-            <div class="empty-documents">
-                Unable to load documents.
+            <div class="knowledge-state">
+                <div class="knowledge-state-icon">!</div>
+                <div class="knowledge-state-title">
+                    Unable to load documents
+                </div>
+                <div class="knowledge-state-text">
+                    Check that the KnowledgeHub backend is running.
+                </div>
+                <button
+                    id="knowledgeRetryButton"
+                    class="knowledge-retry-button"
+                    type="button"
+                >
+                    Retry
+                </button>
             </div>
         `;
+
+
+        const retryButton =
+            document.getElementById(
+                "knowledgeRetryButton"
+            );
+
+
+        if (retryButton) {
+
+            retryButton.addEventListener(
+                "click",
+                loadDocuments
+            );
+
+        }
+
+    }
+    finally {
+
+        refreshDocumentsButton.disabled =
+            false;
 
     }
 
 }
 
 
-function renderDocuments(documents) {
+function renderDocuments(
+    documents
+) {
 
-    documentsList.innerHTML = "";
+    documentsList.innerHTML =
+        "";
 
 
     if (
@@ -1334,10 +3773,17 @@ function renderDocuments(documents) {
     ) {
 
         documentsList.innerHTML = `
-            <div class="empty-documents">
-                No documents uploaded yet.
+            <div class="knowledge-state">
+                <div class="knowledge-state-icon">PDF</div>
+                <div class="knowledge-state-title">
+                    No documents yet
+                </div>
+                <div class="knowledge-state-text">
+                    Add a PDF to start building your knowledge base.
+                </div>
             </div>
         `;
+
 
         return;
 
@@ -1348,61 +3794,120 @@ function renderDocuments(documents) {
         documentItem => {
 
             const wrapper =
-                document.createElement("div");
+                document.createElement(
+                    "div"
+                );
+
 
             wrapper.className =
                 "document-item";
 
 
+            const icon =
+                document.createElement(
+                    "div"
+                );
+
+
+            icon.className =
+                "document-icon";
+
+
+            icon.textContent =
+                "PDF";
+
+
             const info =
-                document.createElement("div");
+                document.createElement(
+                    "div"
+                );
+
 
             info.className =
                 "document-info";
 
 
             const name =
-                document.createElement("div");
+                document.createElement(
+                    "div"
+                );
+
 
             name.className =
                 "document-name";
 
+
             name.textContent =
                 documentItem.filename;
+
 
             name.title =
                 documentItem.filename;
 
 
             const date =
-                document.createElement("div");
+                document.createElement(
+                    "div"
+                );
+
 
             date.className =
                 "document-date";
 
+
             date.textContent =
-                `Uploaded: ${formatDate(
+                formatDate(
                     documentItem.created_at
-                )}`;
+                );
 
 
             info.appendChild(
                 name
             );
 
+
             info.appendChild(
                 date
             );
 
 
+            const status =
+                document.createElement(
+                    "div"
+                );
+
+
+            status.className =
+                "document-status";
+
+
+            status.innerHTML = `
+                <span class="document-status-dot"></span>
+                Indexed in knowledge base
+            `;
+
+
+            info.appendChild(
+                status
+            );
+
+
             const deleteButton =
-                document.createElement("button");
+                document.createElement(
+                    "button"
+                );
+
 
             deleteButton.className =
                 "delete-document-button";
 
+
             deleteButton.textContent =
-                "Delete";
+                "×";
+
+
+            deleteButton.title =
+                "Delete document";
 
 
             deleteButton.addEventListener(
@@ -1419,8 +3924,14 @@ function renderDocuments(documents) {
 
 
             wrapper.appendChild(
+                icon
+            );
+
+
+            wrapper.appendChild(
                 info
             );
+
 
             wrapper.appendChild(
                 deleteButton
@@ -1437,6 +3948,11 @@ function renderDocuments(documents) {
 }
 
 
+/* =========================================
+   DELETE DOCUMENT
+   ========================================= */
+
+
 async function deleteDocument(
     documentId,
     filename
@@ -1445,8 +3961,8 @@ async function deleteDocument(
     const confirmed =
         confirm(
             `Delete "${filename}"?\n\n` +
-            "This will remove the document and " +
-            "all of its indexed chunks from KnowledgeHub."
+            "This removes the document and " +
+            "all of its indexed chunks."
         );
 
 
@@ -1463,7 +3979,8 @@ async function deleteDocument(
             await fetch(
                 `${API_URL}/documents/${documentId}`,
                 {
-                    method: "DELETE"
+                    method:
+                        "DELETE"
                 }
             );
 
@@ -1488,6 +4005,7 @@ async function deleteDocument(
                 "Unable to delete document."
             );
 
+
             return;
 
         }
@@ -1497,7 +4015,8 @@ async function deleteDocument(
 
 
         uploadStatus.textContent =
-            `${filename} was deleted successfully.`;
+            `${filename} deleted successfully.`;
+
 
         uploadStatus.className =
             "upload-success";
@@ -1510,6 +4029,7 @@ async function deleteDocument(
             error
         );
 
+
         alert(
             "Unable to delete the document."
         );
@@ -1519,7 +4039,14 @@ async function deleteDocument(
 }
 
 
-function formatDate(value) {
+/* =========================================
+   DATE
+   ========================================= */
+
+
+function formatDate(
+    value
+) {
 
     if (!value) {
 
@@ -1529,7 +4056,9 @@ function formatDate(value) {
 
 
     const date =
-        new Date(value);
+        new Date(
+            value
+        );
 
 
     if (
@@ -1538,18 +4067,29 @@ function formatDate(value) {
         )
     ) {
 
-        return String(value);
+        return String(
+            value
+        );
 
     }
 
 
-    return date.toLocaleString();
+    return date.toLocaleString(
+        [],
+        {
+            dateStyle:
+                "medium",
+
+            timeStyle:
+                "short"
+        }
+    );
 
 }
 
 
 /* =========================================
-   CLEAR CURRENT CHAT DISPLAY
+   CHAT DISPLAY
    ========================================= */
 
 
@@ -1561,12 +4101,19 @@ function clearChat() {
             id="welcome"
         >
 
+            <div class="welcome-icon">
+                K
+            </div>
+
             <h2>
-                Welcome to KnowledgeHub
+                Ask your knowledge base
             </h2>
 
             <p>
-                Ask a question about your documents.
+                Add a PDF from the Knowledge Base panel,
+                then ask questions about its contents.
+                KnowledgeHub will answer using retrieved
+                document context.
             </p>
 
         </div>
@@ -1583,11 +4130,13 @@ function showWelcome() {
 
 
 /* =========================================
-   ADD USER MESSAGE
+   USER MESSAGE
    ========================================= */
 
 
-function addUserMessage(question) {
+function addUserMessage(
+    question
+) {
 
     const currentWelcome =
         document.getElementById(
@@ -1603,7 +4152,10 @@ function addUserMessage(question) {
 
 
     const message =
-        document.createElement("div");
+        document.createElement(
+            "div"
+        );
+
 
     message.className =
         "message user-message";
@@ -1627,84 +4179,552 @@ function addUserMessage(question) {
 
 
 /* =========================================
-   ADD ASSISTANT MESSAGE
+   SAFE MARKDOWN RENDERING
    ========================================= */
 
 
-function addAssistantMessage(data) {
+function renderInlineMarkdown(
+    text
+) {
+
+    let value =
+        escapeHtml(
+            text
+        );
+
+
+    const codeSegments =
+        [];
+
+
+    value =
+        value.replace(
+            /`([^`]+)`/g,
+            function(
+                match,
+                code
+            ) {
+
+                const token =
+                    `%%INLINECODE${codeSegments.length}%%`;
+
+
+                codeSegments.push(
+                    `<code>${code}</code>`
+                );
+
+
+                return token;
+
+            }
+        );
+
+
+    /*
+     * Bold + italic
+     * ***example***
+     */
+
+    value =
+        value.replace(
+            /\*\*\*(.+?)\*\*\*/g,
+            "<strong><em>$1</em></strong>"
+        );
+
+
+    /*
+     * Bold
+     * **example**
+     */
+
+    value =
+        value.replace(
+            /\*\*(.+?)\*\*/g,
+            "<strong>$1</strong>"
+        );
+
+
+    /*
+     * Italic
+     * *example*
+     */
+
+    value =
+        value.replace(
+            /(^|[^*])\*([^*\n]+)\*(?!\*)/g,
+            "$1<em>$2</em>"
+        );
+
+
+    codeSegments.forEach(
+        function(
+            html,
+            index
+        ) {
+
+            value =
+                value.replace(
+                    `%%INLINECODE${index}%%`,
+                    html
+                );
+
+        }
+    );
+
+
+    return value;
+
+}
+
+
+function renderMarkdown(
+    markdown
+) {
+
+    const lines =
+        String(
+            markdown ?? ""
+        )
+        .replace(
+            /\r\n/g,
+            "\n"
+        )
+        .split(
+            "\n"
+        );
+
+
+    let html =
+        "";
+
+
+    let inUnorderedList =
+        false;
+
+
+    let inOrderedList =
+        false;
+
+
+    let inCodeBlock =
+        false;
+
+
+    let codeLines =
+        [];
+
+
+    function closeLists() {
+
+        if (
+            inUnorderedList
+        ) {
+
+            html +=
+                "</ul>";
+
+
+            inUnorderedList =
+                false;
+
+        }
+
+
+        if (
+            inOrderedList
+        ) {
+
+            html +=
+                "</ol>";
+
+
+            inOrderedList =
+                false;
+
+        }
+
+    }
+
+
+    lines.forEach(
+        rawLine => {
+
+            const trimmed =
+                rawLine.trim();
+
+
+            /*
+             * Fenced code blocks
+             */
+
+            if (
+                trimmed.startsWith(
+                    "```"
+                )
+            ) {
+
+                closeLists();
+
+
+                if (
+                    !inCodeBlock
+                ) {
+
+                    inCodeBlock =
+                        true;
+
+
+                    codeLines =
+                        [];
+
+                }
+                else {
+
+                    html +=
+                        `<pre><code>${escapeHtml(
+                            codeLines.join(
+                                "\n"
+                            )
+                        )}</code></pre>`;
+
+
+                    inCodeBlock =
+                        false;
+
+
+                    codeLines =
+                        [];
+
+                }
+
+
+                return;
+
+            }
+
+
+            if (
+                inCodeBlock
+            ) {
+
+                codeLines.push(
+                    rawLine
+                );
+
+
+                return;
+
+            }
+
+
+            /*
+             * Blank line
+             */
+
+            if (
+                trimmed === ""
+            ) {
+
+                closeLists();
+
+
+                return;
+
+            }
+
+
+            /*
+             * Headings
+             */
+
+            const headingMatch =
+                trimmed.match(
+                    /^(#{1,4})\s+(.+)$/
+                );
+
+
+            if (
+                headingMatch
+            ) {
+
+                closeLists();
+
+
+                const level =
+                    headingMatch[1].length;
+
+
+                html +=
+                    `<h${level}>${
+                        renderInlineMarkdown(
+                            headingMatch[2]
+                        )
+                    }</h${level}>`;
+
+
+                return;
+
+            }
+
+
+            /*
+             * Unordered lists
+             */
+
+            const unorderedMatch =
+                trimmed.match(
+                    /^[-*]\s+(.+)$/
+                );
+
+
+            if (
+                unorderedMatch
+            ) {
+
+                if (
+                    inOrderedList
+                ) {
+
+                    html +=
+                        "</ol>";
+
+
+                    inOrderedList =
+                        false;
+
+                }
+
+
+                if (
+                    !inUnorderedList
+                ) {
+
+                    html +=
+                        "<ul>";
+
+
+                    inUnorderedList =
+                        true;
+
+                }
+
+
+                html +=
+                    `<li>${
+                        renderInlineMarkdown(
+                            unorderedMatch[1]
+                        )
+                    }</li>`;
+
+
+                return;
+
+            }
+
+
+            /*
+             * Ordered lists
+             */
+
+            const orderedMatch =
+                trimmed.match(
+                    /^\d+\.\s+(.+)$/
+                );
+
+
+            if (
+                orderedMatch
+            ) {
+
+                if (
+                    inUnorderedList
+                ) {
+
+                    html +=
+                        "</ul>";
+
+
+                    inUnorderedList =
+                        false;
+
+                }
+
+
+                if (
+                    !inOrderedList
+                ) {
+
+                    html +=
+                        "<ol>";
+
+
+                    inOrderedList =
+                        true;
+
+                }
+
+
+                html +=
+                    `<li>${
+                        renderInlineMarkdown(
+                            orderedMatch[1]
+                        )
+                    }</li>`;
+
+
+                return;
+
+            }
+
+
+            /*
+             * Blockquote
+             */
+
+            const quoteMatch =
+                trimmed.match(
+                    /^>\s*(.+)$/
+                );
+
+
+            if (
+                quoteMatch
+            ) {
+
+                closeLists();
+
+
+                html +=
+                    `<blockquote>${
+                        renderInlineMarkdown(
+                            quoteMatch[1]
+                        )
+                    }</blockquote>`;
+
+
+                return;
+
+            }
+
+
+            /*
+             * Normal paragraph
+             */
+
+            closeLists();
+
+
+            html +=
+                `<p>${
+                    renderInlineMarkdown(
+                        rawLine
+                    )
+                }</p>`;
+
+        }
+    );
+
+
+    closeLists();
+
+
+    if (
+        inCodeBlock &&
+        codeLines.length > 0
+    ) {
+
+        html +=
+            `<pre><code>${escapeHtml(
+                codeLines.join(
+                    "\n"
+                )
+            )}</code></pre>`;
+
+    }
+
+
+    return html;
+
+}
+
+
+/* =========================================
+   ASSISTANT MESSAGE
+   ========================================= */
+
+
+function addAssistantMessage(
+    data
+) {
 
     const message =
-        document.createElement("div");
+        document.createElement(
+            "div"
+        );
+
 
     message.className =
         "message assistant-message";
 
 
-    let sourcesHtml = "";
+    const rawSources =
+        Array.isArray(data.sources)
+            ? data.sources
+            : [];
 
 
-    if (
-        data.sources &&
-        data.sources.length > 0
-    ) {
+    message.dataset.sources =
+        JSON.stringify(rawSources);
 
-        sourcesHtml = `
-            <div class="sources">
 
-                <strong>
-                    Sources
-                </strong>
+    message.dataset.answer =
+        data.answer || "";
 
-                ${data.sources.map(
-                    source => `
 
-                    <div class="source">
-
-                        ${escapeHtml(
-                            source.filename ||
-                            "Unknown document"
-                        )}
-
-                        — Chunk
-                        ${escapeHtml(
-                            String(
-                                source.chunk_index ??
-                                ""
-                            )
-                        )}
-
-                        ${
-                            source.relevance !== undefined
-                            ? `— Relevance
-                               ${escapeHtml(
-                                   String(
-                                       source.relevance
-                                   )
-                               )}`
-                            : ""
-                        }
-
-                    </div>
-
-                    `
-                ).join("")}
-
-            </div>
-        `;
-
-    }
+    const sourcesHtml =
+        renderSourcesHtml(
+            rawSources
+        );
 
 
     message.innerHTML = `
         <div class="assistant-bubble">
 
-            <div>
-                ${escapeHtml(
-                    data.answer || ""
-                )}
+            <div class="assistant-label">
+
+                <div class="assistant-identity">
+
+                    <span class="assistant-dot"></span>
+
+                    <span>KnowledgeHub</span>
+
+                </div>
+
+                <div class="message-actions">
+
+                    <button
+                        class="message-action-button copy-answer-button"
+                        type="button"
+                        title="Copy answer"
+                    >
+                        Copy
+                    </button>
+
+                </div>
+
             </div>
 
-            ${sourcesHtml}
+            <div class="answer-text">
+
+                ${renderMarkdown(
+                    data.answer || ""
+                )}
+
+            </div>
+
+            <div class="sources-container">
+                ${sourcesHtml}
+            </div>
 
         </div>
     `;
@@ -1715,23 +4735,692 @@ function addAssistantMessage(data) {
     );
 
 
-    scrollToBottom();
+    const copyAnswerButton =
+        message.querySelector(
+            ".copy-answer-button"
+        );
+
+
+    if (copyAnswerButton) {
+
+        copyAnswerButton.addEventListener(
+            "click",
+            () => {
+
+                copyTextWithFeedback(
+                    data.answer || "",
+                    copyAnswerButton,
+                    "Copy",
+                    "Copied"
+                );
+
+            }
+        );
+
+    }
+
+
+    latestSources =
+        rawSources;
+
+
+    updateContextPanel(
+        rawSources
+    );
+
+
+    scrollMessageIntoView(
+        message
+    );
 
 }
 
 
 /* =========================================
-   LOADING MESSAGE
+   SOURCES / CONTEXT
+   ========================================= */
+
+
+function getUniqueSources(
+    sources
+) {
+
+    const seen =
+        new Set();
+
+
+    const unique =
+        [];
+
+
+    sources.forEach(
+        source => {
+
+            const filename =
+                source.filename ||
+                "Unknown document";
+
+
+            if (
+                seen.has(
+                    filename
+                )
+            ) {
+
+                return;
+
+            }
+
+
+            seen.add(
+                filename
+            );
+
+
+            unique.push({
+
+                ...source,
+
+                filename:
+                    filename
+
+            });
+
+        }
+    );
+
+
+    return unique;
+
+}
+
+
+function renderDeveloperDetails(
+    source
+) {
+
+    if (
+        !developerModeEnabled
+    ) {
+
+        return "";
+
+    }
+
+
+    const chunk =
+        source.chunk_index !== undefined &&
+        source.chunk_index !== null
+            ? escapeHtml(
+                String(source.chunk_index)
+            )
+            : "n/a";
+
+
+    const relevance =
+        source.relevance !== undefined &&
+        source.relevance !== null
+            ? escapeHtml(
+                String(source.relevance)
+            )
+            : "n/a";
+
+
+    return `
+        <div class="developer-details">
+            Chunk <code>${chunk}</code>
+            &nbsp;•&nbsp;
+            Relevance <code>${relevance}</code>
+        </div>
+    `;
+
+}
+
+
+function renderSourcesHtml(
+    sources
+) {
+
+    if (
+        !sources ||
+        sources.length === 0
+    ) {
+
+        return "";
+
+    }
+
+
+    const displaySources =
+        developerModeEnabled
+            ? sources
+            : getUniqueSources(
+                sources
+            );
+
+
+    return `
+        <div class="sources">
+
+            <div class="sources-title">
+                Sources
+            </div>
+
+            <div class="sources-list">
+
+                ${displaySources.map(
+                    source => `
+                        <div class="source">
+
+                            <span class="source-icon">
+                                ▣
+                            </span>
+
+                            <span>
+                                ${escapeHtml(
+                                    source.filename ||
+                                    "Unknown document"
+                                )}
+
+                                ${renderDeveloperDetails(
+                                    source
+                                )}
+                            </span>
+
+                        </div>
+                    `
+                ).join("")}
+
+            </div>
+
+        </div>
+    `;
+
+}
+
+
+function buildEvidencePreview(content) {
+
+    const normalized = String(content || "")
+        .replace(/\s+/g, " ")
+        .trim();
+
+    if (normalized.length <= 280) {
+        return normalized;
+    }
+
+    return normalized.slice(0, 280).trimEnd() + "…";
+
+}
+
+
+async function fetchSourceEvidence(source) {
+
+    if (
+        source.document_id === undefined ||
+        source.document_id === null ||
+        source.chunk_index === undefined ||
+        source.chunk_index === null
+    ) {
+
+        throw new Error(
+            "Source does not contain document/chunk identifiers."
+        );
+
+    }
+
+
+    const response = await fetch(
+        `${API_URL}/documents/${source.document_id}/chunks/${source.chunk_index}`
+    );
+
+
+    if (!response.ok) {
+
+        throw new Error(
+            `Server returned ${response.status}`
+        );
+
+    }
+
+
+    const data = await response.json();
+
+
+    if (data.success === false) {
+
+        throw new Error(
+            data.message || "Evidence could not be loaded."
+        );
+
+    }
+
+
+    return data;
+
+}
+
+
+async function updateContextPanel(
+    sources
+) {
+
+    latestSources =
+        Array.isArray(sources)
+            ? sources
+            : [];
+
+
+    if (
+        latestSources.length === 0
+    ) {
+
+        clearContextPanel();
+
+        return;
+
+    }
+
+
+    /*
+     * The answer itself keeps normal-user citations deduplicated,
+     * but this right-hand panel is an evidence inspector.
+     * Therefore each retrieved passage gets its own card.
+     */
+
+    const displaySources =
+        latestSources;
+
+
+    contextContent.innerHTML =
+        displaySources.map(
+            (source, index) => `
+                <div class="context-card ${
+                    developerModeEnabled
+                        ? "developer-context-card"
+                        : ""
+                }">
+
+                    <div class="context-card-label">
+                        ${
+                            developerModeEnabled
+                                ? `Retrieved Evidence ${index + 1}`
+                                : `Supporting Evidence ${index + 1}`
+                        }
+                    </div>
+
+                    <div class="context-document">
+
+                        <div class="context-document-icon">
+                            PDF
+                        </div>
+
+                        <div>
+
+                            <div class="context-document-name">
+                                ${escapeHtml(
+                                    source.filename ||
+                                    "Unknown document"
+                                )}
+                            </div>
+
+                            <div class="context-document-note">
+                                Retrieved passage used for grounding
+                            </div>
+
+                            ${renderDeveloperDetails(
+                                source
+                            )}
+
+                        </div>
+
+                    </div>
+
+                    <div
+                        class="context-evidence"
+                        id="contextEvidence${index}"
+                    >
+                        <div class="context-evidence-loading">
+                            Loading supporting passage…
+                        </div>
+                    </div>
+
+                </div>
+            `
+        ).join("");
+
+
+    await Promise.all(
+        displaySources.map(
+            async (source, index) => {
+
+                const target =
+                    document.getElementById(
+                        `contextEvidence${index}`
+                    );
+
+
+                if (!target) {
+                    return;
+                }
+
+
+                try {
+
+                    const evidence =
+                        await fetchSourceEvidence(
+                            source
+                        );
+
+
+                    const content =
+                        evidence.content || "";
+
+
+                    const preview =
+                        buildEvidencePreview(
+                            content
+                        );
+
+
+                    target.innerHTML = `
+                        <div class="context-evidence-header">
+
+                            <div class="context-evidence-label">
+                                Supporting passage
+                            </div>
+
+                            <button
+                                class="context-copy-button"
+                                type="button"
+                                title="Copy supporting passage"
+                            >
+                                Copy evidence
+                            </button>
+
+                        </div>
+
+                        <div class="context-evidence-preview">
+                            ${escapeHtml(preview)}
+                        </div>
+
+                        <details>
+
+                            <summary>
+                                View full context
+                            </summary>
+
+                            <div class="context-evidence-full">
+                                ${escapeHtml(content)}
+                            </div>
+
+                        </details>
+                    `;
+
+
+                    const copyEvidenceButton =
+                        target.querySelector(
+                            ".context-copy-button"
+                        );
+
+
+                    if (copyEvidenceButton) {
+
+                        copyEvidenceButton.addEventListener(
+                            "click",
+                            () => {
+
+                                copyTextWithFeedback(
+                                    content,
+                                    copyEvidenceButton,
+                                    "Copy evidence",
+                                    "Copied"
+                                );
+
+                            }
+                        );
+
+                    }
+
+                }
+                catch (error) {
+
+                    console.error(
+                        "Unable to load source evidence:",
+                        error
+                    );
+
+
+                    target.innerHTML = `
+                        <div class="context-evidence-error">
+                            Supporting passage could not be loaded.
+                        </div>
+                    `;
+
+                }
+
+            }
+        )
+    );
+
+}
+
+
+function clearContextPanel() {
+
+    latestSources = [];
+
+
+    contextContent.innerHTML = `
+        <div class="context-empty">
+
+            <div class="context-empty-icon">
+                K
+            </div>
+
+            Ask a question to see which
+            documents support the answer.
+
+        </div>
+    `;
+
+}
+
+
+function refreshDeveloperDetails() {
+
+    document
+        .querySelectorAll(
+            ".assistant-message[data-sources]"
+        )
+        .forEach(
+            message => {
+
+                let sources = [];
+
+
+                try {
+
+                    sources =
+                        JSON.parse(
+                            message.dataset.sources ||
+                            "[]"
+                        );
+
+                }
+                catch (error) {
+
+                    sources = [];
+
+                }
+
+
+                const container =
+                    message.querySelector(
+                        ".sources-container"
+                    );
+
+
+                if (
+                    container
+                ) {
+
+                    container.innerHTML =
+                        renderSourcesHtml(
+                            sources
+                        );
+
+                }
+
+            }
+        );
+
+
+    if (
+        latestSources.length > 0
+    ) {
+
+        updateContextPanel(
+            latestSources
+        );
+
+    }
+
+}
+
+
+/* =========================================
+   APPEARANCE / DEVELOPER MODE
+   ========================================= */
+
+
+function getCurrentTheme() {
+
+    return (
+        document.documentElement.dataset.theme ||
+        "light"
+    );
+
+}
+
+
+function applyTheme(
+    theme
+) {
+
+    const safeTheme =
+        theme === "dark"
+            ? "dark"
+            : "light";
+
+
+    document.documentElement.dataset.theme =
+        safeTheme;
+
+
+    localStorage.setItem(
+        "knowledgehub_theme",
+        safeTheme
+    );
+
+
+    const darkMode =
+        safeTheme === "dark";
+
+
+    themeToggleIcon.textContent =
+        darkMode
+            ? "☀"
+            : "☾";
+
+
+    themeToggleLabel.textContent =
+        darkMode
+            ? "Light"
+            : "Dark";
+
+
+    themeToggleButton.title =
+        darkMode
+            ? "Switch to light theme"
+            : "Switch to dark theme";
+
+}
+
+
+function toggleTheme() {
+
+    applyTheme(
+        getCurrentTheme() === "dark"
+            ? "light"
+            : "dark"
+    );
+
+}
+
+
+function applyDeveloperMode() {
+
+    developerModeButton.classList.toggle(
+        "active",
+        developerModeEnabled
+    );
+
+
+    developerModeLabel.textContent =
+        developerModeEnabled
+            ? "Dev On"
+            : "Dev Off";
+
+
+    developerModeButton.title =
+        developerModeEnabled
+            ? "Hide technical retrieval details"
+            : "Show technical retrieval details";
+
+
+    developerModeNote.hidden =
+        !developerModeEnabled;
+
+
+    localStorage.setItem(
+        "knowledgehub_developer_mode",
+        String(developerModeEnabled)
+    );
+
+
+    refreshDeveloperDetails();
+
+}
+
+
+function toggleDeveloperMode() {
+
+    developerModeEnabled =
+        !developerModeEnabled;
+
+
+    applyDeveloperMode();
+
+}
+
+
+/* =========================================
+   LOADING
    ========================================= */
 
 
 function addLoadingMessage() {
 
     const message =
-        document.createElement("div");
+        document.createElement(
+            "div"
+        );
+
 
     message.className =
         "message assistant-message";
+
 
     message.id =
         "loading-message";
@@ -1739,7 +5428,25 @@ function addLoadingMessage() {
 
     message.innerHTML = `
         <div class="assistant-bubble loading">
-            KnowledgeHub is thinking...
+
+            <div class="loading-row">
+
+                <span>
+                    Searching your knowledge base
+                </span>
+
+                <span class="loading-dots">
+
+                    <span class="loading-dot"></span>
+
+                    <span class="loading-dot"></span>
+
+                    <span class="loading-dot"></span>
+
+                </span>
+
+            </div>
+
         </div>
     `;
 
@@ -1762,7 +5469,9 @@ function removeLoadingMessage() {
         );
 
 
-    if (loading) {
+    if (
+        loading
+    ) {
 
         loading.remove();
 
@@ -1782,19 +5491,18 @@ async function askQuestion() {
         questionInput.value.trim();
 
 
-    if (!question) {
+    if (
+        !question
+    ) {
 
         return;
 
     }
 
 
-    /*
-     * If there is no active session,
-     * create one automatically.
-     */
-
-    if (currentSessionId === null) {
+    if (
+        currentSessionId === null
+    ) {
 
         try {
 
@@ -1802,12 +5510,15 @@ async function askQuestion() {
                 await fetch(
                     `${API_URL}/chats`,
                     {
-                        method: "POST"
+                        method:
+                            "POST"
                     }
                 );
 
 
-            if (!response.ok) {
+            if (
+                !response.ok
+            ) {
 
                 throw new Error(
                     `Server returned ${response.status}`
@@ -1823,15 +5534,19 @@ async function askQuestion() {
             currentSessionId =
                 data.id;
 
+
             saveCurrentSession();
 
         }
-        catch (error) {
+        catch (
+            error
+        ) {
 
             console.error(
                 "Unable to create chat:",
                 error
             );
+
 
             addAssistantMessage({
 
@@ -1842,6 +5557,7 @@ async function askQuestion() {
                 sources: []
 
             });
+
 
             return;
 
@@ -1855,9 +5571,13 @@ async function askQuestion() {
     );
 
 
-    questionInput.value = "";
+    questionInput.value =
+        "";
 
-    askButton.disabled = true;
+
+    askButton.disabled =
+        true;
+
 
     addLoadingMessage();
 
@@ -1868,28 +5588,34 @@ async function askQuestion() {
             await fetch(
                 `${API_URL}/ask`,
                 {
-                    method: "POST",
+                    method:
+                        "POST",
 
                     headers: {
+
                         "Content-Type":
                             "application/json"
+
                     },
 
-                    body: JSON.stringify({
+                    body:
+                        JSON.stringify({
 
-                        question:
-                            question,
+                            question:
+                                question,
 
-                        session_id:
-                            currentSessionId
+                            session_id:
+                                currentSessionId
 
-                    })
+                        })
 
                 }
             );
 
 
-        if (!response.ok) {
+        if (
+            !response.ok
+        ) {
 
             throw new Error(
                 `Server returned ${response.status}`
@@ -1912,6 +5638,7 @@ async function askQuestion() {
             currentSessionId =
                 data.session_id;
 
+
             saveCurrentSession();
 
         }
@@ -1925,7 +5652,9 @@ async function askQuestion() {
         await loadChatHistory();
 
     }
-    catch (error) {
+    catch (
+        error
+    ) {
 
         removeLoadingMessage();
 
@@ -1951,7 +5680,10 @@ async function askQuestion() {
         askButton.disabled =
             false;
 
-        questionInput.focus();
+
+        questionInput.focus({
+            preventScroll: true
+        });
 
     }
 
@@ -1959,7 +5691,7 @@ async function askQuestion() {
 
 
 /* =========================================
-   UPLOAD DOCUMENT
+   DOCUMENT UPLOAD
    ========================================= */
 
 
@@ -1969,13 +5701,17 @@ async function uploadDocument() {
         fileInput.files[0];
 
 
-    if (!file) {
+    if (
+        !file
+    ) {
 
         uploadStatus.textContent =
-            "Please select a PDF file.";
+            "Select a PDF first.";
+
 
         uploadStatus.className =
             "upload-error";
+
 
         return;
 
@@ -1985,14 +5721,18 @@ async function uploadDocument() {
     if (
         !file.name
             .toLowerCase()
-            .endsWith(".pdf")
+            .endsWith(
+                ".pdf"
+            )
     ) {
 
         uploadStatus.textContent =
             "Only PDF files are supported.";
 
+
         uploadStatus.className =
             "upload-error";
+
 
         return;
 
@@ -2013,8 +5753,23 @@ async function uploadDocument() {
         true;
 
 
-    uploadStatus.textContent =
-        "Uploading and ingesting document...";
+    selectFileButton.disabled =
+        true;
+
+
+    uploadButton.textContent =
+        "Working";
+
+
+    uploadStatus.innerHTML = `
+        <div class="upload-progress">
+            <span class="knowledge-spinner"></span>
+            <span>
+                Uploading and indexing ${escapeHtml(file.name)}...
+            </span>
+        </div>
+    `;
+
 
     uploadStatus.className =
         "";
@@ -2026,13 +5781,18 @@ async function uploadDocument() {
             await fetch(
                 `${API_URL}/documents/upload`,
                 {
-                    method: "POST",
-                    body: formData
+                    method:
+                        "POST",
+
+                    body:
+                        formData
                 }
             );
 
 
-        if (!response.ok) {
+        if (
+            !response.ok
+        ) {
 
             throw new Error(
                 `Server returned ${response.status}`
@@ -2045,16 +5805,28 @@ async function uploadDocument() {
             await response.json();
 
 
-        if (data.success) {
+        if (
+            data.success
+        ) {
 
             uploadStatus.textContent =
-                `${data.filename} uploaded and successfully ingested.`;
+                `${data.filename} added to the knowledge base.`;
+
 
             uploadStatus.className =
                 "upload-success";
 
 
-            fileInput.value = "";
+            fileInput.value =
+                "";
+
+
+            selectFileButton.textContent =
+                "+ Add PDF";
+
+
+            selectFileButton.title =
+                "Choose PDF document";
 
 
             await loadDocuments();
@@ -2066,16 +5838,20 @@ async function uploadDocument() {
                 data.message ||
                 "Document ingestion failed.";
 
+
             uploadStatus.className =
                 "upload-error";
 
         }
 
     }
-    catch (error) {
+    catch (
+        error
+    ) {
 
         uploadStatus.textContent =
             "Unable to connect to KnowledgeHub backend.";
+
 
         uploadStatus.className =
             "upload-error";
@@ -2091,40 +5867,290 @@ async function uploadDocument() {
         uploadButton.disabled =
             false;
 
+
+        selectFileButton.disabled =
+            false;
+
+
+        uploadButton.textContent =
+            "Upload";
+
     }
 
 }
 
 
 /* =========================================
-   UTILITY FUNCTIONS
+   FILE PICKER
    ========================================= */
 
 
-function scrollToBottom() {
+function openFilePicker() {
 
-    window.scrollTo({
-
-        top:
-            document.body.scrollHeight,
-
-        behavior:
-            "smooth"
-
-    });
+    fileInput.click();
 
 }
 
 
-function escapeHtml(text) {
+function handleSelectedFile() {
+
+    const file =
+        fileInput.files[0];
+
+
+    if (
+        !file
+    ) {
+
+        selectFileButton.textContent =
+            "+ Add PDF";
+
+
+        selectFileButton.title =
+            "Choose PDF document";
+
+
+        return;
+
+    }
+
+
+    selectFileButton.textContent =
+        file.name;
+
+
+    selectFileButton.title =
+        file.name;
+
+
+    uploadStatus.textContent =
+        "Ready to upload.";
+
+
+    uploadStatus.className =
+        "";
+
+}
+
+
+/* =========================================
+   UTILITY
+   ========================================= */
+
+
+async function copyTextWithFeedback(
+    text,
+    button,
+    defaultLabel,
+    successLabel
+) {
+
+    const value =
+        String(text || "");
+
+
+    if (!value) {
+
+        return;
+
+    }
+
+
+    try {
+
+        if (
+            navigator.clipboard &&
+            window.isSecureContext
+        ) {
+
+            await navigator.clipboard.writeText(
+                value
+            );
+
+        }
+        else {
+
+            const textarea =
+                document.createElement(
+                    "textarea"
+                );
+
+
+            textarea.value =
+                value;
+
+
+            textarea.style.position =
+                "fixed";
+
+
+            textarea.style.opacity =
+                "0";
+
+
+            document.body.appendChild(
+                textarea
+            );
+
+
+            textarea.focus();
+
+            textarea.select();
+
+
+            const copied =
+                document.execCommand(
+                    "copy"
+                );
+
+
+            textarea.remove();
+
+
+            if (!copied) {
+
+                throw new Error(
+                    "Clipboard copy failed."
+                );
+
+            }
+
+        }
+
+
+        if (button) {
+
+            button.textContent =
+                successLabel;
+
+
+            button.classList.add(
+                "copied"
+            );
+
+
+            window.setTimeout(
+                () => {
+
+                    button.textContent =
+                        defaultLabel;
+
+
+                    button.classList.remove(
+                        "copied"
+                    );
+
+                },
+                1400
+            );
+
+        }
+
+    }
+    catch (error) {
+
+        console.error(
+            "Unable to copy text:",
+            error
+        );
+
+
+        if (button) {
+
+            button.textContent =
+                "Copy failed";
+
+
+            window.setTimeout(
+                () => {
+
+                    button.textContent =
+                        defaultLabel;
+
+                },
+                1600
+            );
+
+        }
+
+    }
+
+}
+
+
+function scrollMessageIntoView(
+    message
+) {
+
+    if (!message) {
+
+        return;
+
+    }
+
+
+    /*
+     * Wait until the newly-rendered answer has been laid out,
+     * then bring the beginning of that answer into view.
+     *
+     * This is more reliable for long conversations than
+     * scrolling the workspace to its absolute bottom.
+     */
+
+    window.requestAnimationFrame(
+        () => {
+
+            window.requestAnimationFrame(
+                () => {
+
+                    message.scrollIntoView({
+                        behavior: "smooth",
+                        block: "start"
+                    });
+
+                }
+            );
+
+        }
+    );
+
+}
+
+
+function scrollToBottom() {
+
+    if (
+        workspaceScroll
+    ) {
+
+        workspaceScroll.scrollTo({
+
+            top:
+                workspaceScroll.scrollHeight,
+
+            behavior:
+                "smooth"
+
+        });
+
+    }
+
+}
+
+
+function escapeHtml(
+    text
+) {
 
     const div =
         document.createElement(
             "div"
         );
 
+
     div.textContent =
         text ?? "";
+
 
     return div.innerHTML;
 
@@ -2132,19 +6158,13 @@ function escapeHtml(text) {
 
 
 /* =========================================
-   EVENT LISTENERS
+   EVENTS
    ========================================= */
 
 
 askButton.addEventListener(
     "click",
     askQuestion
-);
-
-
-uploadButton.addEventListener(
-    "click",
-    uploadDocument
 );
 
 
@@ -2160,9 +6180,41 @@ refreshDocumentsButton.addEventListener(
 );
 
 
+selectFileButton.addEventListener(
+    "click",
+    openFilePicker
+);
+
+
+fileInput.addEventListener(
+    "change",
+    handleSelectedFile
+);
+
+
+uploadButton.addEventListener(
+    "click",
+    uploadDocument
+);
+
+
+themeToggleButton.addEventListener(
+    "click",
+    toggleTheme
+);
+
+
+developerModeButton.addEventListener(
+    "click",
+    toggleDeveloperMode
+);
+
+
 questionInput.addEventListener(
     "keydown",
-    function(event) {
+    function(
+        event
+    ) {
 
         if (
             event.key === "Enter"
@@ -2177,13 +6229,26 @@ questionInput.addEventListener(
 
 
 /* =========================================
-   INITIALIZE APPLICATION
+   INITIALIZE V2
    ========================================= */
+
+
+applyTheme(
+    getCurrentTheme()
+);
+
+
+applyDeveloperMode();
+
+
+updateSessionDisplay();
 
 
 loadChatHistory();
 
+
 loadDocuments();
+
 
 restoreCurrentChat();
 

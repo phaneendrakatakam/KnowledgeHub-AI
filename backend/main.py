@@ -48,7 +48,6 @@ async def upload_document(
     Upload a PDF and run the existing ingestion pipeline.
     """
 
-    # Validate file type
     if not file.filename.lower().endswith(".pdf"):
         return {
             "success": False,
@@ -57,7 +56,6 @@ async def upload_document(
 
     file_path = DOCUMENTS_DIR / file.filename
 
-    # Save uploaded PDF
     with open(file_path, "wb") as buffer:
         shutil.copyfileobj(
             file.file,
@@ -65,13 +63,10 @@ async def upload_document(
         )
 
     try:
-        # Run the existing ingestion pipeline.
         ingest_document(str(file_path))
 
-        # Find the newly created document record.
         with get_connection() as conn:
             with conn.cursor() as cur:
-
                 cur.execute(
                     """
                     SELECT
@@ -116,7 +111,6 @@ def get_documents():
 
     with get_connection() as conn:
         with conn.cursor() as cur:
-
             cur.execute(
                 """
                 SELECT
@@ -142,23 +136,71 @@ def get_documents():
     }
 
 
+@app.get("/documents/{document_id}/chunks/{chunk_index}")
+def get_document_chunk(
+    document_id: int,
+    chunk_index: int
+):
+    """
+    Return one indexed document chunk for the V2 source-evidence viewer.
+
+    This endpoint intentionally returns only stored document evidence.
+    It does not perform generation or retrieval.
+    """
+
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT
+                    dc.id,
+                    dc.document_id,
+                    d.filename,
+                    dc.chunk_index,
+                    dc.content
+                FROM document_chunks dc
+                JOIN documents d
+                    ON d.id = dc.document_id
+                WHERE
+                    dc.document_id = %s
+                    AND dc.chunk_index = %s
+                """,
+                (
+                    document_id,
+                    chunk_index
+                )
+            )
+
+            row = cur.fetchone()
+
+    if row is None:
+        return {
+            "success": False,
+            "message": "Supporting document passage not found."
+        }
+
+    return {
+        "success": True,
+        "chunk_id": row[0],
+        "document_id": row[1],
+        "filename": row[2],
+        "chunk_index": row[3],
+        "content": row[4]
+    }
+
+
 @app.delete("/documents/{document_id}")
 def delete_document(document_id: int):
     """
     Delete a document from the database.
 
-    Because document_chunks.document_id has
-    ON DELETE CASCADE, all chunks belonging
-    to this document are automatically deleted.
-
-    The corresponding PDF file is also removed
-    from the documents directory.
+    Because document_chunks.document_id has ON DELETE CASCADE,
+    all chunks belonging to the document are automatically deleted.
+    The corresponding PDF is also removed from the local documents folder.
     """
 
     with get_connection() as conn:
         with conn.cursor() as cur:
-
-            # First find the document.
             cur.execute(
                 """
                 SELECT
@@ -180,9 +222,6 @@ def delete_document(document_id: int):
 
             filename = document[1]
 
-            # Delete database record.
-            # document_chunks are deleted automatically
-            # because of ON DELETE CASCADE.
             cur.execute(
                 """
                 DELETE FROM documents
@@ -192,13 +231,11 @@ def delete_document(document_id: int):
                 (document_id,)
             )
 
-            deleted = cur.fetchone()
+            cur.fetchone()
 
         conn.commit()
 
-    # Delete the physical PDF file.
     file_path = DOCUMENTS_DIR / filename
-
     file_deleted = True
 
     try:
@@ -231,7 +268,6 @@ def create_chat():
 
     with get_connection() as conn:
         with conn.cursor() as cur:
-
             cur.execute(
                 """
                 INSERT INTO chat_sessions (title)
@@ -261,7 +297,6 @@ def get_chats():
 
     with get_connection() as conn:
         with conn.cursor() as cur:
-
             cur.execute(
                 """
                 SELECT
@@ -297,7 +332,6 @@ def get_chat(session_id: int):
 
     with get_connection() as conn:
         with conn.cursor() as cur:
-
             cur.execute(
                 """
                 SELECT
@@ -362,7 +396,6 @@ def delete_chat(session_id: int):
 
     with get_connection() as conn:
         with conn.cursor() as cur:
-
             cur.execute(
                 """
                 DELETE FROM chat_sessions
@@ -414,10 +447,8 @@ async def ask_question(request: dict):
 
     # If no session was supplied, create one.
     if session_id is None:
-
         with get_connection() as conn:
             with conn.cursor() as cur:
-
                 cur.execute(
                     """
                     INSERT INTO chat_sessions (title)
@@ -433,10 +464,8 @@ async def ask_question(request: dict):
 
     # Make sure the supplied session exists.
     else:
-
         with get_connection() as conn:
             with conn.cursor() as cur:
-
                 cur.execute(
                     """
                     SELECT id
@@ -456,8 +485,40 @@ async def ask_question(request: dict):
                 "session_id": session_id
             }
 
-    # Generate RAG answer.
-    result = generate_answer(question)
+    # V2: load recent conversation history before answering.
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT
+                    question,
+                    answer
+                FROM chat_messages
+                WHERE session_id = %s
+                ORDER BY created_at DESC, id DESC
+                LIMIT 4
+                """,
+                (session_id,)
+            )
+
+            rows = cur.fetchall()
+
+    # Query is newest-first; reverse to natural conversation order.
+    rows.reverse()
+
+    conversation_history = [
+        {
+            "question": row[0],
+            "answer": row[1]
+        }
+        for row in rows
+    ]
+
+    # Generate conversation-aware grounded answer.
+    result = generate_answer(
+        question,
+        conversation_history=conversation_history
+    )
 
     answer = result["answer"]
     sources = result["sources"]
@@ -465,7 +526,6 @@ async def ask_question(request: dict):
     # Save question + answer + sources.
     with get_connection() as conn:
         with conn.cursor() as cur:
-
             cur.execute(
                 """
                 INSERT INTO chat_messages
@@ -485,8 +545,6 @@ async def ask_question(request: dict):
                 )
             )
 
-            # Give a new chat a useful title
-            # based on its first question.
             cur.execute(
                 """
                 UPDATE chat_sessions
