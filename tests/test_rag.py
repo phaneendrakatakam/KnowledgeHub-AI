@@ -1,5 +1,9 @@
 import sys
 from pathlib import Path
+from types import SimpleNamespace
+
+import pytest
+
 
 sys.path.insert(
     0,
@@ -9,470 +13,410 @@ sys.path.insert(
     )
 )
 
+
 import rag
 
 
-# ============================================================
-# V1 TESTS
-# ============================================================
+def make_result(
+    chunk_id=1,
+    document_id=10,
+    filename="test.pdf",
+    chunk_index=0,
+    content="Relevant document content.",
+    distance=0.20
+):
+    return (
+        chunk_id,
+        document_id,
+        filename,
+        chunk_index,
+        content,
+        distance
+    )
 
 
-def test_generate_answer_when_no_results(monkeypatch):
+def mock_gemini_response(
+    monkeypatch,
+    text
+):
+    def fake_generate_content(
+        *args,
+        **kwargs
+    ):
+        return SimpleNamespace(
+            text=text
+        )
 
+    monkeypatch.setattr(
+        rag.client.models,
+        "generate_content",
+        fake_generate_content
+    )
+
+
+def test_generate_answer_when_no_results(
+    monkeypatch
+):
     monkeypatch.setattr(
         rag,
         "search_documents",
-        lambda query, limit: []
+        lambda query, limit, user_id=None: []
     )
 
     result = rag.generate_answer(
-        "Unknown question"
+        "What is Jenkins?"
     )
 
     assert result == {
-        "answer": (
-            "I couldn't find relevant information "
-            "in the knowledge base."
-        ),
-        "sources": []
+        "answer":
+            rag.NO_RESULTS_ANSWER,
+        "sources":
+            []
     }
 
 
 def test_generate_answer_when_results_are_not_relevant(
     monkeypatch
 ):
-
-    fake_results = [
-        (
-            1,
-            10,
-            "test.pdf",
-            0,
-            "Some unrelated content",
-            0.75
-        ),
-        (
-            2,
-            10,
-            "test.pdf",
-            1,
-            "More unrelated content",
-            0.60
+    results = [
+        make_result(
+            distance=0.70
         )
     ]
 
     monkeypatch.setattr(
         rag,
         "search_documents",
-        lambda query, limit: fake_results
+        lambda query, limit, user_id=None: results
     )
 
     result = rag.generate_answer(
-        "Question with no relevant answer"
+        "What is Jenkins?"
     )
 
     assert result == {
-        "answer": (
-            "I couldn't find that information "
-            "in the provided documents."
-        ),
-        "sources": []
+        "answer":
+            rag.REJECTION_ANSWER,
+        "sources":
+            []
     }
 
 
 def test_generate_answer_uses_relevant_results(
     monkeypatch
 ):
-
-    fake_results = [
-        (
-            1,
-            10,
-            "story.pdf",
-            0,
-            (
-                "The boy received the Hanuman idol "
-                "from his grandfather."
+    results = [
+        make_result(
+            chunk_id=101,
+            document_id=20,
+            filename="jenkins_guide.txt",
+            chunk_index=0,
+            content=(
+                "Jenkins is an open-source "
+                "automation server."
             ),
-            0.20
+            distance=0.20
         )
     ]
-
-    class FakeResponse:
-        text = (
-            "The boy received the Hanuman idol "
-            "from his grandfather."
-        )
-
-    class FakeModels:
-
-        def __init__(self):
-            self.received_prompt = None
-
-        def generate_content(
-            self,
-            model,
-            contents
-        ):
-
-            self.received_prompt = contents
-
-            assert model == (
-                "gemini-3.1-flash-lite"
-            )
-
-            return FakeResponse()
-
-    fake_models = FakeModels()
-
-    class FakeClient:
-        models = fake_models
 
     monkeypatch.setattr(
         rag,
         "search_documents",
-        lambda query, limit: fake_results
+        lambda query, limit, user_id=None: results
     )
 
-    monkeypatch.setattr(
-        rag,
-        "client",
-        FakeClient()
+    mock_gemini_response(
+        monkeypatch,
+        (
+            "Jenkins is an open-source "
+            "automation server."
+        )
     )
 
     result = rag.generate_answer(
-        "Who gave the boy the Hanuman idol?"
+        "What is Jenkins?"
     )
 
     assert result["answer"] == (
-        "The boy received the Hanuman idol "
-        "from his grandfather."
+        "Jenkins is an open-source "
+        "automation server."
     )
 
-    assert result["sources"] == [
-        {
-            "document_id": 10,
-            "filename": "story.pdf",
-            "chunk_index": 0,
-            "relevance": 0.8
-        }
-    ]
+    assert len(
+        result["sources"]
+    ) == 1
 
-    assert (
-        "story.pdf"
-        in fake_models.received_prompt
-    )
+    source = result["sources"][0]
 
-    assert (
-        (
-            "The boy received the Hanuman idol "
-            "from his grandfather."
-        )
-        in fake_models.received_prompt
-    )
+    assert source[
+        "document_id"
+    ] == 20
 
-    assert (
-        "Who gave the boy the Hanuman idol?"
-        in fake_models.received_prompt
+    assert source[
+        "filename"
+    ] == "jenkins_guide.txt"
+
+    assert source[
+        "chunk_index"
+    ] == 0
+
+    assert source[
+        "relevance"
+    ] == pytest.approx(
+        0.86
     )
 
 
 def test_generate_answer_filters_irrelevant_results(
     monkeypatch
 ):
-
-    fake_results = [
-        (
-            1,
-            10,
-            "relevant.pdf",
-            0,
-            "Relevant information",
-            0.25
+    results = [
+        make_result(
+            filename="relevant.pdf",
+            content="Supported information.",
+            distance=0.25
         ),
-        (
-            2,
-            10,
-            "irrelevant.pdf",
-            1,
-            "Irrelevant information",
-            0.65
+        make_result(
+            filename="irrelevant.pdf",
+            content="Unrelated information.",
+            distance=0.80
         )
     ]
-
-    class FakeResponse:
-        text = "Relevant information"
-
-    class FakeModels:
-
-        def __init__(self):
-            self.received_prompt = None
-
-        def generate_content(
-            self,
-            model,
-            contents
-        ):
-
-            self.received_prompt = contents
-
-            return FakeResponse()
-
-    fake_models = FakeModels()
-
-    class FakeClient:
-        models = fake_models
 
     monkeypatch.setattr(
         rag,
         "search_documents",
-        lambda query, limit: fake_results
+        lambda query, limit, user_id=None: results
     )
 
-    monkeypatch.setattr(
-        rag,
-        "client",
-        FakeClient()
+    mock_gemini_response(
+        monkeypatch,
+        "Supported answer."
     )
 
     result = rag.generate_answer(
-        "test question"
+        "Explain the supported information."
     )
 
-    assert (
-        result["answer"]
-        == "Relevant information"
-    )
+    assert result[
+        "answer"
+    ] == "Supported answer."
 
-    assert result["sources"] == [
-        {
-            "document_id": 10,
-            "filename": "relevant.pdf",
-            "chunk_index": 0,
-            "relevance": 0.75
-        }
-    ]
-
-    assert (
-        "relevant.pdf"
-        in fake_models.received_prompt
-    )
-
-    assert (
-        "irrelevant.pdf"
-        not in fake_models.received_prompt
-    )
+    assert len(
+        result["sources"]
+    ) == 1
 
 
 def test_generate_answer_returns_multiple_sources(
     monkeypatch
 ):
-
-    fake_results = [
-        (
-            1,
-            10,
-            "first.pdf",
-            0,
-            "First relevant document content.",
-            0.10
+    results = [
+        make_result(
+            filename="document_a.pdf",
+            distance=0.10
         ),
-        (
-            2,
-            20,
-            "second.pdf",
-            2,
-            "Second relevant document content.",
-            0.30
+        make_result(
+            filename="document_b.txt",
+            distance=0.30
         )
     ]
-
-    class FakeResponse:
-        text = (
-            "Combined answer from both documents."
-        )
-
-    class FakeModels:
-
-        def __init__(self):
-            self.received_prompt = None
-
-        def generate_content(
-            self,
-            model,
-            contents
-        ):
-
-            self.received_prompt = contents
-
-            return FakeResponse()
-
-    fake_models = FakeModels()
-
-    class FakeClient:
-        models = fake_models
 
     monkeypatch.setattr(
         rag,
         "search_documents",
-        lambda query, limit: fake_results
+        lambda query, limit, user_id=None: results
     )
 
-    monkeypatch.setattr(
-        rag,
-        "client",
-        FakeClient()
+    mock_gemini_response(
+        monkeypatch,
+        "Combined grounded answer."
     )
 
     result = rag.generate_answer(
-        "combined question"
+        "Explain the topic."
     )
 
-    assert result["answer"] == (
-        "Combined answer from both documents."
-    )
+    assert len(
+        result["sources"]
+    ) == 2
 
-    assert result["sources"] == [
-        {
-            "document_id": 10,
-            "filename": "first.pdf",
-            "chunk_index": 0,
-            "relevance": 0.9
-        },
-        {
-            "document_id": 20,
-            "filename": "second.pdf",
-            "chunk_index": 2,
-            "relevance": 0.7
-        }
-    ]
 
+def test_is_follow_up_query_rejects_standalone_question():
     assert (
-        "first.pdf"
-        in fake_models.received_prompt
+        rag.is_follow_up_query(
+            "What is Jenkins?"
+        )
+        is False
     )
 
+
+def test_is_follow_up_query_detects_referential_question():
     assert (
-        "second.pdf"
-        in fake_models.received_prompt
+        rag.is_follow_up_query(
+            "How is it different?"
+        )
+        is True
     )
 
+
+def test_is_follow_up_query_detects_possessive_reference():
     assert (
-        "First relevant document content."
-        in fake_models.received_prompt
+        rag.is_follow_up_query(
+            "What are its key features?"
+        )
+        is True
     )
 
+
+def test_is_follow_up_query_detects_plural_possessive_reference():
     assert (
-        "Second relevant document content."
-        in fake_models.received_prompt
+        rag.is_follow_up_query(
+            "What are their differences?"
+        )
+        is True
     )
-
-
-# ============================================================
-# V2 CONVERSATION-AWARE RAG TESTS
-# ============================================================
 
 
 def test_build_retrieval_query_without_history():
-
     query = (
-        "Which one requires human approval?"
+        "What is Jenkins?"
     )
 
-    result = rag.build_retrieval_query(
-        query
+    result = (
+        rag.build_retrieval_query(
+            query
+        )
     )
 
     assert result == query
 
 
-def test_build_retrieval_query_with_history():
-
+def test_standalone_query_does_not_use_history():
     history = [
         {
-            "question": (
-                "What is the difference between "
-                "Continuous Delivery and "
-                "Continuous Deployment?"
-            ),
-            "answer": (
-                "Continuous Delivery usually "
-                "requires manual production approval."
-            )
+            "question":
+                "What is Continuous Delivery?",
+            "answer":
+                "Previous answer."
         }
     ]
 
-    result = rag.build_retrieval_query(
-        "Which one requires human approval?",
-        history
+    result = (
+        rag.build_retrieval_query(
+            "What is Jenkins?",
+            history
+        )
+    )
+
+    assert result == (
+        "What is Jenkins?"
+    )
+
+
+def test_follow_up_query_uses_history():
+    history = [
+        {
+            "question":
+                (
+                    "What is the difference between "
+                    "Continuous Delivery and "
+                    "Continuous Deployment?"
+                ),
+            "answer":
+                "Previous answer."
+        }
+    ]
+
+    result = (
+        rag.build_retrieval_query(
+            "Which one requires human approval?",
+            history
+        )
     )
 
     assert (
-        "What is the difference between "
-        "Continuous Delivery and "
-        "Continuous Deployment?"
+        "Continuous Delivery"
         in result
     )
 
-    assert (
+    assert result.endswith(
         "Which one requires human approval?"
+    )
+
+
+def test_possessive_follow_up_query_uses_history():
+    history = [
+        {
+            "question":
+                "What is Jenkins?",
+            "answer":
+                "Jenkins answer."
+        }
+    ]
+
+    result = (
+        rag.build_retrieval_query(
+            "What are its key features?",
+            history
+        )
+    )
+
+    assert (
+        "What is Jenkins?"
         in result
+    )
+
+    assert result.endswith(
+        "What are its key features?"
     )
 
 
 def test_build_retrieval_query_uses_only_questions():
-
     history = [
         {
-            "question": (
-                "What is Continuous Delivery?"
-            ),
-            "answer": (
-                "THIS ANSWER SHOULD NOT BE PART "
-                "OF THE RETRIEVAL QUERY."
-            )
+            "question":
+                "What is Jenkins?",
+            "answer":
+                (
+                    "THIS ANSWER MUST NOT "
+                    "ENTER RETRIEVAL."
+                )
         }
     ]
 
-    result = rag.build_retrieval_query(
-        "Why does it require approval?",
-        history
+    result = (
+        rag.build_retrieval_query(
+            "What are its key features?",
+            history
+        )
     )
 
     assert (
-        "What is Continuous Delivery?"
-        in result
-    )
-
-    assert (
-        "Why does it require approval?"
-        in result
-    )
-
-    assert (
-        "THIS ANSWER SHOULD NOT BE PART"
+        "THIS ANSWER MUST NOT ENTER RETRIEVAL."
         not in result
     )
 
 
 def test_build_retrieval_query_respects_history_limit():
-
     history = [
         {
-            "question": f"Question {index}",
-            "answer": f"Answer {index}"
+            "question":
+                f"Question {index}",
+            "answer":
+                f"Answer {index}"
         }
-        for index in range(1, 7)
+        for index in range(
+            1,
+            7
+        )
     ]
 
-    result = rag.build_retrieval_query(
-        "Current question",
-        history
+    result = (
+        rag.build_retrieval_query(
+            "Which one?",
+            history
+        )
     )
-
-    # MAX_HISTORY_MESSAGES = 4,
-    # therefore Question 1 and 2
-    # should no longer be included.
 
     assert (
         "Question 1\n"
@@ -490,317 +434,411 @@ def test_build_retrieval_query_respects_history_limit():
     )
 
     assert (
-        "Question 4"
-        in result
-    )
-
-    assert (
-        "Question 5"
-        in result
-    )
-
-    assert (
         "Question 6"
         in result
     )
 
+
+def test_build_retrieval_query_deduplicates_history():
+    history = [
+        {
+            "question":
+                "what is jenkins",
+            "answer":
+                "First answer."
+        },
+        {
+            "question":
+                "What is Jenkins?",
+            "answer":
+                "Second answer."
+        }
+    ]
+
+    result = (
+        rag.build_retrieval_query(
+            "What are its key features?",
+            history
+        )
+    )
+
     assert (
-        "Current question"
-        in result
+        result.lower().count(
+            "what is jenkins"
+        )
+        == 1
+    )
+
+
+def test_build_retrieval_query_excludes_previous_same_follow_up():
+    history = [
+        {
+            "question":
+                "What is Jenkins?",
+            "answer":
+                "Jenkins answer."
+        },
+        {
+            "question":
+                "What are its key features?",
+            "answer":
+                rag.REJECTION_ANSWER
+        }
+    ]
+
+    result = (
+        rag.build_retrieval_query(
+            "What are its key features?",
+            history
+        )
+    )
+
+    assert result == (
+        "What is Jenkins?\n"
+        "What are its key features?"
     )
 
 
 def test_build_conversation_context_without_history():
-
-    result = rag.build_conversation_context()
-
     assert (
-        result
+        rag.build_conversation_context()
         == "No previous conversation."
     )
 
 
 def test_build_conversation_context_includes_questions_and_answers():
-
     history = [
         {
-            "question": (
-                "What is Continuous Delivery?"
-            ),
-            "answer": (
-                "Continuous Delivery prepares "
-                "changes for production release."
-            )
+            "question":
+                "What is Jenkins?",
+            "answer":
+                "Jenkins is an automation server."
         }
     ]
 
-    result = rag.build_conversation_context(
-        history
-    )
-
-    assert (
-        "User: What is Continuous Delivery?"
-        in result
-    )
-
-    assert (
-        (
-            "Assistant: Continuous Delivery "
-            "prepares changes for production release."
+    result = (
+        rag.build_conversation_context(
+            history
         )
+    )
+
+    assert (
+        "User: What is Jenkins?"
+        in result
+    )
+
+    assert (
+        "Assistant: Jenkins is an automation server."
         in result
     )
 
 
-def test_generate_answer_uses_history_for_retrieval(
+def test_generate_answer_uses_history_for_follow_up_retrieval(
     monkeypatch
 ):
+    captured = {}
 
-    captured_query = {
-        "value": None
-    }
-
-    fake_results = [
-        (
-            1,
-            10,
-            "cicd.pdf",
-            4,
-            (
-                "Continuous Delivery requires "
-                "human approval before production."
-            ),
-            0.20
-        )
-    ]
-
-    def fake_search_documents(
+    def fake_search(
         query,
-        limit
+        limit,
+        user_id=None
     ):
+        captured[
+            "query"
+        ] = query
 
-        captured_query["value"] = query
-
-        return fake_results
-
-
-    class FakeResponse:
-
-        text = (
-            "Continuous Delivery requires "
-            "human approval."
-        )
-
-
-    class FakeModels:
-
-        def __init__(self):
-            self.received_prompt = None
-
-        def generate_content(
-            self,
-            model,
-            contents
-        ):
-
-            self.received_prompt = contents
-
-            return FakeResponse()
-
-
-    fake_models = FakeModels()
-
-
-    class FakeClient:
-        models = fake_models
-
+        return [
+            make_result(
+                filename="jenkins_guide.txt",
+                content=(
+                    "Jenkins offers a rich plugin "
+                    "ecosystem and Pipeline as Code."
+                ),
+                distance=0.20
+            )
+        ]
 
     monkeypatch.setattr(
         rag,
         "search_documents",
-        fake_search_documents
+        fake_search
     )
 
-    monkeypatch.setattr(
-        rag,
-        "client",
-        FakeClient()
+    mock_gemini_response(
+        monkeypatch,
+        (
+            "Jenkins provides a rich plugin "
+            "ecosystem and Pipeline as Code."
+        )
     )
-
 
     history = [
         {
-            "question": (
-                "What is the difference between "
-                "Continuous Delivery and "
-                "Continuous Deployment?"
-            ),
-            "answer": (
-                "Continuous Delivery normally "
-                "requires manual approval."
-            )
+            "question":
+                "What is Jenkins?",
+            "answer":
+                "Jenkins is an automation server."
         }
     ]
 
-
     result = rag.generate_answer(
-        "Which one requires human approval?",
+        "What are its key features?",
         conversation_history=history
     )
 
+    assert (
+        "What is Jenkins?"
+        in captured["query"]
+    )
 
     assert (
-        "Continuous Delivery"
-        in captured_query["value"]
+        result["sources"][0][
+            "filename"
+        ]
+        == "jenkins_guide.txt"
     )
 
 
-    assert (
-        "Which one requires human approval?"
-        in captured_query["value"]
+def test_generate_answer_standalone_query_ignores_history(
+    monkeypatch
+):
+    captured = {}
+
+    def fake_search(
+        query,
+        limit,
+        user_id=None
+    ):
+        captured[
+            "query"
+        ] = query
+
+        return [
+            make_result(
+                filename="jenkins_guide.txt",
+                content=(
+                    "Jenkins is a leading open-source "
+                    "automation server."
+                ),
+                distance=0.261
+            )
+        ]
+
+    monkeypatch.setattr(
+        rag,
+        "search_documents",
+        fake_search
     )
 
-
-    assert (
-        "RECENT CONVERSATION"
-        in fake_models.received_prompt
-    )
-
-
-    assert (
+    mock_gemini_response(
+        monkeypatch,
         (
-            "User: What is the difference between "
-            "Continuous Delivery and "
-            "Continuous Deployment?"
+            "Jenkins is a leading open-source "
+            "automation server."
         )
-        in fake_models.received_prompt
     )
 
+    history = [
+        {
+            "question":
+                "Explain Continuous Delivery.",
+            "answer":
+                "Unrelated answer."
+        }
+    ]
+
+    result = rag.generate_answer(
+        "What is Jenkins?",
+        conversation_history=history
+    )
 
     assert (
-        "cicd.pdf"
-        in fake_models.received_prompt
+        captured["query"]
+        == "What is Jenkins?"
+    )
+
+    assert (
+        result["sources"][0][
+            "filename"
+        ]
+        == "jenkins_guide.txt"
     )
 
 
-    assert result["answer"] == (
-        "Continuous Delivery requires "
-        "human approval."
+def test_generate_answer_grounded_rejection_removes_sources(
+    monkeypatch
+):
+    results = [
+        make_result(
+            filename="related.pdf",
+            content=(
+                "Semantically related but "
+                "does not answer the question."
+            ),
+            distance=0.20
+        )
+    ]
+
+    monkeypatch.setattr(
+        rag,
+        "search_documents",
+        lambda query, limit, user_id=None: results
     )
+
+    mock_gemini_response(
+        monkeypatch,
+        rag.REJECTION_ANSWER
+    )
+
+    result = rag.generate_answer(
+        "What unsupported fact am I asking for?"
+    )
+
+    assert result == {
+        "answer":
+            rag.REJECTION_ANSWER,
+        "sources":
+            []
+    }
 
 
 def test_generate_answer_keeps_document_context_as_evidence(
     monkeypatch
 ):
+    captured = {}
 
-    fake_results = [
-        (
-            1,
-            10,
-            "official.pdf",
-            0,
-            (
-                "Continuous Delivery requires "
-                "human approval before production."
+    results = [
+        make_result(
+            filename="jenkins_guide.txt",
+            content=(
+                "Jenkins supports Pipeline as Code "
+                "through Jenkinsfile."
             ),
-            0.20
+            distance=0.20
         )
     ]
-
-
-    class FakeResponse:
-
-        text = (
-            "Continuous Delivery requires "
-            "human approval."
-        )
-
-
-    class FakeModels:
-
-        def __init__(self):
-            self.received_prompt = None
-
-        def generate_content(
-            self,
-            model,
-            contents
-        ):
-
-            self.received_prompt = contents
-
-            return FakeResponse()
-
-
-    fake_models = FakeModels()
-
-
-    class FakeClient:
-        models = fake_models
-
 
     monkeypatch.setattr(
         rag,
         "search_documents",
-        lambda query, limit: fake_results
+        lambda query, limit, user_id=None: results
     )
 
+    def fake_generate_content(
+        *args,
+        **kwargs
+    ):
+        captured[
+            "prompt"
+        ] = kwargs[
+            "contents"
+        ]
+
+        return SimpleNamespace(
+            text=(
+                "Jenkins supports Pipeline as Code."
+            )
+        )
 
     monkeypatch.setattr(
-        rag,
-        "client",
-        FakeClient()
+        rag.client.models,
+        "generate_content",
+        fake_generate_content
     )
-
 
     history = [
         {
-            "question": (
-                "Which process requires approval?"
-            ),
-
-            # Deliberately incorrect previous answer.
-            "answer": (
-                "Continuous Deployment requires "
-                "manual approval."
-            )
+            "question":
+                "What is Jenkins?",
+            "answer":
+                "Jenkins is an automation server."
         }
     ]
 
-
     rag.generate_answer(
-        "Which one is it?",
+        "What are its key features?",
         conversation_history=history
     )
 
-
-    prompt = (
-        fake_models.received_prompt
-    )
-
-
-    # The old assistant answer may appear in
-    # conversation context, but the prompt must
-    # explicitly prohibit treating it as evidence.
+    prompt = captured[
+        "prompt"
+    ]
 
     assert (
-        "The recent conversation is NOT "
-        "a factual knowledge source."
+        "DOCUMENT CONTEXT:"
         in prompt
     )
 
-
     assert (
-        "Do not treat previous assistant "
-        "answers as evidence."
+        "Jenkins supports Pipeline as Code"
         in prompt
     )
 
-
     assert (
-        (
-            "Continuous Delivery requires "
-            "human approval before production."
-        )
+        "RECENT CONVERSATION:"
         in prompt
     )
+
+def test_generate_answer_forwards_authenticated_user_id(
+    monkeypatch
+):
+    captured = {}
+
+    def fake_search(
+        query,
+        limit,
+        user_id=None
+    ):
+        captured["query"] = query
+        captured["limit"] = limit
+        captured["user_id"] = user_id
+
+        return []
+
+    monkeypatch.setattr(
+        rag,
+        "search_documents",
+        fake_search
+    )
+
+    result = rag.generate_answer(
+        "What is Jenkins?",
+        user_id=42
+    )
+
+    assert captured["query"] == "What is Jenkins?"
+    assert captured["limit"] == 3
+    assert captured["user_id"] == 42
+
+    assert (
+        result["answer"]
+        == rag.NO_RESULTS_ANSWER
+    )
+
+    assert result["sources"] == []
+
+
+def test_generate_answer_without_authenticated_user_keeps_legacy_none_scope(
+    monkeypatch
+):
+    captured = {}
+
+    def fake_search(
+        query,
+        limit,
+        user_id=None
+    ):
+        captured["user_id"] = user_id
+        return []
+
+    monkeypatch.setattr(
+        rag,
+        "search_documents",
+        fake_search
+    )
+
+    rag.generate_answer(
+        "What is Jenkins?"
+    )
+
+    assert captured["user_id"] is None

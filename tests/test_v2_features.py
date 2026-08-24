@@ -9,26 +9,78 @@ sys.path.insert(
     )
 )
 
-import main
 import rag
+import main
 
 
-# ============================================================
-# GROUNDED REJECTION TEST
-# ============================================================
+class FakeCursor:
+    def __init__(
+        self,
+        row
+    ):
+        self.row = row
+        self.executed_query = None
+        self.executed_parameters = None
+
+    def execute(
+        self,
+        query,
+        parameters
+    ):
+        self.executed_query = query
+        self.executed_parameters = parameters
+
+    def fetchone(self):
+        return self.row
+
+    def __enter__(self):
+        return self
+
+    def __exit__(
+        self,
+        exc_type,
+        exc_value,
+        traceback
+    ):
+        pass
+
+
+class FakeConnection:
+    def __init__(
+        self,
+        row
+    ):
+        self.cursor_instance = (
+            FakeCursor(
+                row
+            )
+        )
+
+    def cursor(self):
+        return self.cursor_instance
+
+    def __enter__(self):
+        return self
+
+    def __exit__(
+        self,
+        exc_type,
+        exc_value,
+        traceback
+    ):
+        pass
 
 
 def test_grounded_rejection_returns_no_sources(
     monkeypatch
 ):
     """
-    A retrieved chunk may pass the vector similarity threshold
-    while still not containing enough evidence to answer the
-    user's question.
+    A retrieved candidate can be relevant while still
+    lacking enough evidence to answer the user's claim.
 
-    If Gemini performs the final answerability check and rejects
-    the question, KnowledgeHub must not expose those candidate
-    chunks as supporting sources.
+    Gemini's evidence check must reject the answer and
+    KnowledgeHub must not expose candidate chunks as
+    supporting sources.
     """
 
     fake_results = [
@@ -49,7 +101,6 @@ def test_grounded_rejection_returns_no_sources(
         text = rag.REJECTION_ANSWER
 
     class FakeModels:
-
         def generate_content(
             self,
             model,
@@ -63,7 +114,8 @@ def test_grounded_rejection_returns_no_sources(
     monkeypatch.setattr(
         rag,
         "search_documents",
-        lambda query, limit: fake_results
+        lambda query, limit, user_id=None:
+            fake_results
     )
 
     monkeypatch.setattr(
@@ -76,100 +128,20 @@ def test_grounded_rejection_returns_no_sources(
         "Does Jenkins belong to Microsoft?"
     )
 
-    assert result["answer"] == (
-        rag.REJECTION_ANSWER
+    assert (
+        result["answer"]
+        == rag.REJECTION_ANSWER
     )
 
     assert result["sources"] == []
-
-
-# ============================================================
-# SOURCE EVIDENCE ENDPOINT TESTS
-# ============================================================
-
-
-class FakeCursor:
-    """
-    Minimal fake database cursor used by the source-evidence
-    endpoint tests.
-    """
-
-    def __init__(
-        self,
-        row
-    ):
-        self.row = row
-
-        self.executed_query = None
-        self.executed_params = None
-
-    def __enter__(
-        self
-    ):
-        return self
-
-    def __exit__(
-        self,
-        exc_type,
-        exc_value,
-        traceback
-    ):
-        return False
-
-    def execute(
-        self,
-        query,
-        params=None
-    ):
-        self.executed_query = query
-        self.executed_params = params
-
-    def fetchone(
-        self
-    ):
-        return self.row
-
-
-class FakeConnection:
-    """
-    Minimal fake database connection.
-    """
-
-    def __init__(
-        self,
-        row
-    ):
-        self.cursor_instance = (
-            FakeCursor(
-                row
-            )
-        )
-
-    def __enter__(
-        self
-    ):
-        return self
-
-    def __exit__(
-        self,
-        exc_type,
-        exc_value,
-        traceback
-    ):
-        return False
-
-    def cursor(
-        self
-    ):
-        return self.cursor_instance
 
 
 def test_get_document_chunk_returns_evidence(
     monkeypatch
 ):
     """
-    The V2 source-evidence endpoint should return the stored
-    document passage together with its identifying metadata.
+    The source-evidence endpoint must return a stored
+    passage only when it belongs to the authenticated user.
     """
 
     fake_row = (
@@ -192,36 +164,54 @@ def test_get_document_chunk_returns_evidence(
     monkeypatch.setattr(
         main,
         "get_connection",
-        lambda: fake_connection
+        lambda:
+            fake_connection
     )
 
     result = main.get_document_chunk(
         document_id=10,
-        chunk_index=3
+        chunk_index=3,
+        current_user={
+            "id": 7,
+            "name": "Test User",
+            "email": "test@example.com"
+        }
     )
 
-    assert result == {
-        "success": True,
-        "chunk_id": 201,
-        "document_id": 10,
-        "filename": (
-            "CI_CD_Pipeline_Complete_Guide.pdf"
-        ),
-        "chunk_index": 3,
-        "content": (
-            "Continuous Delivery usually requires "
-            "human approval before production."
-        )
-    }
+    assert result["success"] is True
+    assert result["chunk_id"] == 201
+    assert result["document_id"] == 10
 
     assert (
+        result["filename"]
+        == "CI_CD_Pipeline_Complete_Guide.pdf"
+    )
+
+    assert result["file_type"] == "PDF"
+    assert result["chunk_index"] == 3
+
+    assert (
+        "human approval"
+        in result["content"]
+    )
+
+    parameters = (
         fake_connection
         .cursor_instance
-        .executed_params
-        == (
-            10,
-            3
-        )
+        .executed_parameters
+    )
+
+    assert parameters == (
+        10,
+        3,
+        7
+    )
+
+    assert (
+        "d.user_id = %s"
+        in fake_connection
+        .cursor_instance
+        .executed_query
     )
 
 
@@ -229,8 +219,8 @@ def test_get_document_chunk_when_not_found(
     monkeypatch
 ):
     """
-    A request for a chunk that does not exist should return a
-    clean application response rather than inventing evidence.
+    A missing or unauthorized source passage returns the
+    same safe not-found response rather than exposing data.
     """
 
     fake_connection = (
@@ -242,12 +232,18 @@ def test_get_document_chunk_when_not_found(
     monkeypatch.setattr(
         main,
         "get_connection",
-        lambda: fake_connection
+        lambda:
+            fake_connection
     )
 
     result = main.get_document_chunk(
         document_id=999,
-        chunk_index=99
+        chunk_index=99,
+        current_user={
+            "id": 8,
+            "name": "Other User",
+            "email": "other@example.com"
+        }
     )
 
     assert result == {
@@ -261,9 +257,11 @@ def test_get_document_chunk_when_not_found(
     assert (
         fake_connection
         .cursor_instance
-        .executed_params
-        == (
+        .executed_parameters
+        ==
+        (
             999,
-            99
+            99,
+            8
         )
     )

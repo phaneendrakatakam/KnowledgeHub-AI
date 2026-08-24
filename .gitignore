@@ -32,3 +32,13 @@ Thumbs.db
 # Local uploaded documents
 documents/*
 !documents/.gitkeep
+# Test/runtime caches
+.pytest_cache/
+**/.pytest_cache/
+
+# Local destructive development utility
+backend/reset_auth_test_data.py
+
+# Temporary upload/backup artifacts
+documents/**/.upload_*
+documents/**/.backup_*

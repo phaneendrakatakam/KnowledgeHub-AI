@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -10,7 +10,14 @@
         content="width=device-width, initial-scale=1.0"
     >
 
-    <title>KnowledgeHub AI V2</title>
+
+    <script>
+        // Prevent authentication UI flashes before JavaScript
+        // restores the saved KnowledgeHub session.
+        document.documentElement.classList.add("auth-booting");
+    </script>
+
+    <title>KnowledgeHub AI V3 â€” Aurora Glass</title>
 
     <script>
         // Apply the saved theme before the page paints to avoid a flash.
@@ -1195,6 +1202,31 @@
 
             justify-content: flex-start;
         }
+
+        .assistant-message[data-sources] .assistant-bubble {
+            cursor: pointer;
+            transition:
+                border-color 0.16s ease,
+                box-shadow 0.16s ease;
+        }
+
+        .assistant-message[data-sources] .assistant-bubble:hover {
+            border-color: var(--primary-border);
+        }
+
+        .assistant-message.context-selected .assistant-bubble {
+            border-color: var(--primary);
+            box-shadow:
+                0 0 0 1px var(--primary-soft);
+        }
+
+        .context-selection-hint {
+            margin-top: 8px;
+            color: var(--muted);
+            font-size: 9px;
+            line-height: 1.45;
+        }
+
 
 
         .assistant-bubble {
@@ -2416,12 +2448,2493 @@
 
         }
 
+        /* =========================================
+           V3 AUTHENTICATION EXPERIENCE
+           ========================================= */
+
+        body.auth-active {
+            overflow: hidden;
+        }
+
+        body.auth-active .app-shell {
+            display: none;
+        }
+
+        .auth-screen {
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            display: none;
+            overflow: hidden;
+            background:
+                radial-gradient(
+                    circle at 12% 18%,
+                    rgba(124, 108, 255, 0.24),
+                    transparent 30%
+                ),
+                radial-gradient(
+                    circle at 88% 14%,
+                    rgba(79, 124, 255, 0.20),
+                    transparent 28%
+                ),
+                radial-gradient(
+                    circle at 72% 86%,
+                    rgba(55, 203, 160, 0.12),
+                    transparent 28%
+                ),
+                linear-gradient(
+                    145deg,
+                    #f6f7ff 0%,
+                    #eef2ff 46%,
+                    #f7f9ff 100%
+                );
+        }
+
+        .auth-screen.visible {
+            display: grid;
+            place-items: center;
+            animation: authFadeIn 0.42s ease both;
+        }
+
+        .auth-noise {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            opacity: 0.22;
+            background-image:
+                radial-gradient(
+                    rgba(73, 79, 110, 0.18) 0.5px,
+                    transparent 0.5px
+                );
+            background-size: 18px 18px;
+            mask-image:
+                linear-gradient(
+                    to bottom,
+                    black,
+                    transparent 92%
+                );
+        }
+
+        .auth-orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(6px);
+            pointer-events: none;
+            opacity: 0.78;
+            animation:
+                authFloat
+                9s
+                ease-in-out
+                infinite;
+        }
+
+        .auth-orb-one {
+            width: 320px;
+            height: 320px;
+            top: -110px;
+            left: -90px;
+            background:
+                radial-gradient(
+                    circle at 35% 35%,
+                    rgba(149, 130, 255, 0.68),
+                    rgba(91, 107, 255, 0.12) 62%,
+                    transparent 72%
+                );
+        }
+
+        .auth-orb-two {
+            width: 360px;
+            height: 360px;
+            right: -130px;
+            bottom: -135px;
+            animation-delay: -3.5s;
+            background:
+                radial-gradient(
+                    circle at 40% 40%,
+                    rgba(82, 142, 255, 0.44),
+                    rgba(54, 203, 159, 0.08) 62%,
+                    transparent 72%
+                );
+        }
+
+        .auth-shell {
+            position: relative;
+            width: min(980px, calc(100vw - 40px));
+            min-height: 610px;
+            display: grid;
+            grid-template-columns:
+                minmax(0, 1.04fr)
+                minmax(380px, 0.96fr);
+            border:
+                1px solid
+                rgba(255, 255, 255, 0.72);
+            border-radius: 32px;
+            overflow: hidden;
+            background:
+                rgba(255, 255, 255, 0.66);
+            backdrop-filter:
+                blur(30px)
+                saturate(150%);
+            box-shadow:
+                0 34px 90px rgba(48, 55, 100, 0.18),
+                inset 0 1px 0 rgba(255, 255, 255, 0.74);
+            animation:
+                authCardIn
+                0.62s
+                cubic-bezier(.2, .8, .2, 1)
+                both;
+        }
+
+        .auth-visual {
+            position: relative;
+            padding: 48px;
+            overflow: hidden;
+            color: white;
+            background:
+                radial-gradient(
+                    circle at 18% 14%,
+                    rgba(255, 255, 255, 0.20),
+                    transparent 25%
+                ),
+                radial-gradient(
+                    circle at 86% 84%,
+                    rgba(88, 226, 188, 0.18),
+                    transparent 24%
+                ),
+                linear-gradient(
+                    145deg,
+                    #6f5ef9 0%,
+                    #5669ff 55%,
+                    #436fd8 100%
+                );
+        }
+
+        .auth-visual::before {
+            content: "";
+            position: absolute;
+            width: 380px;
+            height: 380px;
+            top: 46%;
+            left: 48%;
+            transform:
+                translate(-50%, -50%);
+            border:
+                1px solid
+                rgba(255, 255, 255, 0.12);
+            border-radius: 44%;
+            animation:
+                authRotate
+                18s
+                linear
+                infinite;
+        }
+
+        .auth-visual::after {
+            content: "";
+            position: absolute;
+            width: 260px;
+            height: 260px;
+            top: 48%;
+            left: 49%;
+            transform:
+                translate(-50%, -50%);
+            border:
+                1px solid
+                rgba(255, 255, 255, 0.14);
+            border-radius: 42%;
+            animation:
+                authRotateReverse
+                14s
+                linear
+                infinite;
+        }
+
+        .auth-brand {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .auth-brand-mark {
+            width: 46px;
+            height: 46px;
+            display: grid;
+            place-items: center;
+            border:
+                1px solid
+                rgba(255, 255, 255, 0.28);
+            border-radius: 15px;
+            background:
+                rgba(255, 255, 255, 0.16);
+            backdrop-filter: blur(12px);
+            box-shadow:
+                inset 0 1px 0
+                rgba(255, 255, 255, 0.20);
+            font-size: 18px;
+            font-weight: 800;
+        }
+
+        .auth-brand-copy strong {
+            display: block;
+            font-size: 16px;
+            letter-spacing: -0.2px;
+        }
+
+        .auth-brand-copy span {
+            display: block;
+            margin-top: 2px;
+            color:
+                rgba(255, 255, 255, 0.68);
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 1.2px;
+            text-transform: uppercase;
+        }
+
+        .auth-hero {
+            position: relative;
+            z-index: 2;
+            margin-top: 108px;
+            max-width: 430px;
+        }
+
+        .auth-kicker {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            padding: 7px 10px;
+            border:
+                1px solid
+                rgba(255, 255, 255, 0.19);
+            border-radius: 999px;
+            background:
+                rgba(255, 255, 255, 0.10);
+            color:
+                rgba(255, 255, 255, 0.86);
+            font-size: 10px;
+            font-weight: 750;
+            letter-spacing: 0.6px;
+            text-transform: uppercase;
+        }
+
+        .auth-kicker-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #8ff0ce;
+            box-shadow:
+                0 0 0 5px
+                rgba(143, 240, 206, 0.12);
+        }
+
+        .auth-hero h1 {
+            margin:
+                18px
+                0
+                14px;
+            font-size:
+                clamp(34px, 4vw, 48px);
+            line-height: 1.04;
+            letter-spacing: -1.7px;
+        }
+
+        .auth-hero p {
+            margin: 0;
+            max-width: 390px;
+            color:
+                rgba(255, 255, 255, 0.72);
+            font-size: 14px;
+            line-height: 1.7;
+        }
+
+        .auth-feature-row {
+            position: absolute;
+            z-index: 2;
+            left: 48px;
+            right: 48px;
+            bottom: 44px;
+            display: grid;
+            grid-template-columns:
+                repeat(3, minmax(0, 1fr));
+            gap: 10px;
+        }
+
+        .auth-feature {
+            padding: 12px;
+            border:
+                1px solid
+                rgba(255, 255, 255, 0.16);
+            border-radius: 14px;
+            background:
+                rgba(255, 255, 255, 0.09);
+            backdrop-filter: blur(12px);
+        }
+
+        .auth-feature-icon {
+            margin-bottom: 7px;
+            font-size: 15px;
+        }
+
+        .auth-feature-label {
+            color:
+                rgba(255, 255, 255, 0.84);
+            font-size: 10px;
+            font-weight: 700;
+            line-height: 1.3;
+        }
+
+        .auth-panel {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding:
+                46px
+                50px;
+            background:
+                rgba(255, 255, 255, 0.68);
+        }
+
+        .auth-panel-head {
+            margin-bottom: 24px;
+        }
+
+        .auth-panel-head h2 {
+            margin: 0;
+            color: #202738;
+            font-size: 27px;
+            letter-spacing: -0.8px;
+        }
+
+        .auth-panel-head p {
+            margin:
+                7px
+                0
+                0;
+            color: #7a8498;
+            font-size: 12px;
+            line-height: 1.55;
+        }
+
+        .auth-tabs {
+            position: relative;
+            display: grid;
+            grid-template-columns:
+                1fr
+                1fr;
+            margin-bottom: 24px;
+            padding: 4px;
+            border:
+                1px solid
+                #e6e9f2;
+            border-radius: 13px;
+            background: #f5f6fb;
+        }
+
+        .auth-tab {
+            position: relative;
+            z-index: 2;
+            border: none;
+            padding: 10px 12px;
+            border-radius: 10px;
+            background: transparent;
+            color: #8992a5;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 750;
+            transition:
+                color 0.22s ease,
+                transform 0.22s ease;
+        }
+
+        .auth-tab.active {
+            color: #5548de;
+        }
+
+        .auth-tab-indicator {
+            position: absolute;
+            z-index: 1;
+            top: 4px;
+            bottom: 4px;
+            left: 4px;
+            width:
+                calc(50% - 4px);
+            border:
+                1px solid
+                rgba(109, 93, 252, 0.10);
+            border-radius: 10px;
+            background: white;
+            box-shadow:
+                0 5px 14px
+                rgba(55, 62, 100, 0.08);
+            transition:
+                transform
+                0.30s
+                cubic-bezier(.2, .8, .2, 1);
+        }
+
+        .auth-tabs.register-mode
+        .auth-tab-indicator {
+            transform: translateX(100%);
+        }
+
+        .auth-form {
+            display: none;
+            animation:
+                authFormIn
+                0.28s
+                ease
+                both;
+        }
+
+        .auth-form.active {
+            display: block;
+        }
+
+        .auth-field {
+            margin-bottom: 15px;
+        }
+
+        .auth-field label {
+            display: block;
+            margin-bottom: 7px;
+            color: #545d70;
+            font-size: 10px;
+            font-weight: 750;
+            letter-spacing: 0.35px;
+            text-transform: uppercase;
+        }
+
+        .auth-input-wrap {
+            position: relative;
+        }
+
+        .auth-input {
+            width: 100%;
+            height: 48px;
+            border:
+                1px solid
+                #e0e4ee;
+            border-radius: 13px;
+            outline: none;
+            padding:
+                0
+                14px;
+            background:
+                rgba(255, 255, 255, 0.88);
+            color: #202738;
+            font-size: 13px;
+            box-shadow:
+                0 1px 0
+                rgba(255, 255, 255, 0.75)
+                inset;
+            transition:
+                border-color 0.18s ease,
+                box-shadow 0.18s ease,
+                transform 0.18s ease;
+        }
+
+        .auth-input:focus {
+            border-color:
+                rgba(109, 93, 252, 0.72);
+            box-shadow:
+                0 0 0 4px
+                rgba(109, 93, 252, 0.10);
+            transform: translateY(-1px);
+        }
+
+        .auth-input::placeholder {
+            color: #b1b8c6;
+        }
+
+        .auth-password-toggle {
+            position: absolute;
+            top: 50%;
+            right: 10px;
+            transform: translateY(-50%);
+            border: none;
+            padding: 7px;
+            border-radius: 8px;
+            background: transparent;
+            color: #8c95a8;
+            cursor: pointer;
+            font-size: 10px;
+            font-weight: 700;
+        }
+
+        .auth-password-toggle:hover {
+            background: #f2f3f8;
+            color: #5d6577;
+        }
+
+        .auth-submit {
+            width: 100%;
+            height: 49px;
+            margin-top: 5px;
+            border: none;
+            border-radius: 13px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            color: white;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 750;
+            background:
+                linear-gradient(
+                    135deg,
+                    #715fff,
+                    #586cff
+                );
+            box-shadow:
+                0 12px 26px
+                rgba(88, 91, 235, 0.24);
+            transition:
+                transform 0.18s ease,
+                box-shadow 0.18s ease,
+                filter 0.18s ease;
+        }
+
+        .auth-submit:hover {
+            transform: translateY(-2px);
+            box-shadow:
+                0 16px 30px
+                rgba(88, 91, 235, 0.30);
+            filter: saturate(1.08);
+        }
+
+        .auth-submit:active {
+            transform: translateY(0);
+        }
+
+        .auth-submit:disabled {
+            opacity: 0.62;
+            cursor: wait;
+            transform: none;
+        }
+
+        .auth-submit-spinner {
+            width: 14px;
+            height: 14px;
+            display: none;
+            border:
+                2px solid
+                rgba(255, 255, 255, 0.36);
+            border-top-color: white;
+            border-radius: 50%;
+            animation:
+                knowledgeSpin
+                0.72s
+                linear
+                infinite;
+        }
+
+        .auth-submit.loading
+        .auth-submit-spinner {
+            display: block;
+        }
+
+        .auth-error {
+            min-height: 18px;
+            margin-top: 12px;
+            color: #d94f5d;
+            font-size: 11px;
+            line-height: 1.45;
+        }
+
+        .auth-footnote {
+            margin-top: 18px;
+            color: #9aa2b1;
+            font-size: 10px;
+            line-height: 1.55;
+            text-align: center;
+        }
+
+        .auth-session-loading {
+            display: none;
+            align-items: center;
+            gap: 9px;
+            justify-content: center;
+            min-height: 54px;
+            color: #737c90;
+            font-size: 11px;
+        }
+
+        .auth-session-loading.visible {
+            display: flex;
+        }
+
+        .auth-account {
+            position: relative;
+            z-index: 30;
+        }
+
+        .auth-user {
+            height: 36px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding:
+                3px
+                9px
+                3px
+                4px;
+            border:
+                1px solid
+                var(--border);
+            border-radius: 999px;
+            background: var(--surface);
+            color: var(--text-secondary);
+            cursor: pointer;
+            user-select: none;
+            transition:
+                transform 0.16s ease,
+                border-color 0.16s ease,
+                background 0.16s ease,
+                box-shadow 0.16s ease;
+        }
+
+        .auth-user:hover,
+        .auth-user[aria-expanded="true"] {
+            transform: translateY(-1px);
+            border-color: var(--border-strong);
+            background: var(--surface-solid);
+            box-shadow:
+                0 7px 18px
+                rgba(40, 50, 80, 0.08);
+        }
+
+        .auth-user-avatar {
+            width: 27px;
+            height: 27px;
+            flex-shrink: 0;
+            display: grid;
+            place-items: center;
+            border-radius: 50%;
+            color: white;
+            background:
+                linear-gradient(
+                    135deg,
+                    var(--primary),
+                    var(--blue)
+                );
+            font-size: 9px;
+            font-weight: 800;
+            box-shadow:
+                0 4px 10px
+                rgba(109, 93, 252, 0.22);
+        }
+
+        .auth-user-name {
+            max-width: 108px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            color: var(--text-primary);
+            font-size: 10px;
+            font-weight: 700;
+        }
+
+        .auth-user-chevron {
+            width: 14px;
+            display: grid;
+            place-items: center;
+            color: var(--text-muted);
+            font-size: 9px;
+            transition:
+                transform 0.20s ease,
+                color 0.20s ease;
+        }
+
+        .auth-user[aria-expanded="true"]
+        .auth-user-chevron {
+            transform: rotate(180deg);
+            color: var(--primary);
+        }
+
+        .account-menu {
+            position: absolute;
+            top: calc(100% + 10px);
+            right: 0;
+            width: 238px;
+            padding: 8px;
+            border:
+                1px solid
+                var(--border);
+            border-radius: 16px;
+            background:
+                rgba(255, 255, 255, 0.92);
+            backdrop-filter:
+                blur(22px)
+                saturate(145%);
+            box-shadow:
+                0 20px 50px
+                rgba(40, 50, 80, 0.16);
+            opacity: 0;
+            visibility: hidden;
+            transform:
+                translateY(-6px)
+                scale(0.985);
+            transform-origin: top right;
+            pointer-events: none;
+            transition:
+                opacity 0.18s ease,
+                visibility 0.18s ease,
+                transform 0.22s
+                    cubic-bezier(.2, .8, .2, 1);
+        }
+
+        .account-menu.open {
+            opacity: 1;
+            visibility: visible;
+            transform:
+                translateY(0)
+                scale(1);
+            pointer-events: auto;
+        }
+
+        .account-menu-profile {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding:
+                10px
+                10px
+                12px;
+        }
+
+        .account-menu-avatar {
+            width: 38px;
+            height: 38px;
+            flex-shrink: 0;
+            display: grid;
+            place-items: center;
+            border-radius: 12px;
+            color: white;
+            background:
+                linear-gradient(
+                    135deg,
+                    var(--primary),
+                    var(--blue)
+                );
+            box-shadow:
+                0 7px 18px
+                rgba(109, 93, 252, 0.22);
+            font-size: 11px;
+            font-weight: 800;
+        }
+
+        .account-menu-identity {
+            min-width: 0;
+        }
+
+        .account-menu-name {
+            overflow: hidden;
+            color: var(--text-primary);
+            font-size: 12px;
+            font-weight: 750;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .account-menu-email {
+            margin-top: 2px;
+            overflow: hidden;
+            color: var(--text-muted);
+            font-size: 10px;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .account-menu-divider {
+            height: 1px;
+            margin:
+                2px
+                4px;
+            background: var(--border);
+        }
+
+        .account-menu-note {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding:
+                9px
+                10px;
+            color: var(--text-secondary);
+            font-size: 10px;
+            line-height: 1.35;
+        }
+
+        .account-menu-note-icon {
+            width: 24px;
+            height: 24px;
+            flex-shrink: 0;
+            display: grid;
+            place-items: center;
+            border-radius: 8px;
+            color: var(--primary-dark);
+            background: var(--primary-soft);
+            font-size: 10px;
+            font-weight: 800;
+        }
+
+        [hidden] {
+            display: none !important;
+        }
+
+        .account-menu-action {
+            width: 100%;
+            margin-top: 3px;
+            border: none;
+            padding:
+                10px
+                11px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            background: transparent;
+            color: var(--text-secondary);
+            cursor: pointer;
+            text-align: left;
+            font-size: 11px;
+            font-weight: 700;
+            transition:
+                background 0.16s ease,
+                color 0.16s ease;
+        }
+
+        .account-menu-action:hover {
+            background: var(--surface-soft);
+            color: var(--text-primary);
+        }
+
+        .account-menu-action.sign-out {
+            color: var(--red);
+        }
+
+        .account-menu-action.sign-out:hover {
+            background:
+                rgba(223, 92, 104, 0.10);
+            color: var(--red);
+        }
+
+        .account-menu-action-icon {
+            width: 25px;
+            height: 25px;
+            flex-shrink: 0;
+            display: grid;
+            place-items: center;
+            border-radius: 8px;
+            background:
+                rgba(223, 92, 104, 0.09);
+            font-size: 11px;
+        }
+
+        html[data-theme="dark"]
+        .account-menu {
+            border-color: var(--border);
+            background:
+                rgba(27, 33, 49, 0.96);
+            box-shadow:
+                0 22px 55px
+                rgba(0, 0, 0, 0.34);
+        }
+
+        html[data-theme="dark"]
+        .auth-screen {
+            background:
+                radial-gradient(
+                    circle at 12% 18%,
+                    rgba(124, 108, 255, 0.18),
+                    transparent 30%
+                ),
+                radial-gradient(
+                    circle at 88% 14%,
+                    rgba(79, 124, 255, 0.14),
+                    transparent 28%
+                ),
+                linear-gradient(
+                    145deg,
+                    #0d101a,
+                    #111625 56%,
+                    #0d111d
+                );
+        }
+
+        html[data-theme="dark"]
+        .auth-shell {
+            border-color:
+                rgba(255, 255, 255, 0.10);
+            background:
+                rgba(18, 23, 36, 0.82);
+            box-shadow:
+                0 34px 90px rgba(0, 0, 0, 0.42);
+        }
+
+        html[data-theme="dark"]
+        .auth-panel {
+            background:
+                rgba(20, 25, 39, 0.88);
+        }
+
+        html[data-theme="dark"]
+        .auth-panel-head h2,
+        html[data-theme="dark"]
+        .auth-input {
+            color: #edf1f8;
+        }
+
+        html[data-theme="dark"]
+        .auth-panel-head p,
+        html[data-theme="dark"]
+        .auth-field label {
+            color: #9ea8ba;
+        }
+
+        html[data-theme="dark"]
+        .auth-tabs {
+            border-color: #30384a;
+            background: #171c2a;
+        }
+
+        html[data-theme="dark"]
+        .auth-tab-indicator {
+            border-color: #3a4358;
+            background: #242b3d;
+            box-shadow:
+                0 5px 14px
+                rgba(0, 0, 0, 0.18);
+        }
+
+        html[data-theme="dark"]
+        .auth-input {
+            border-color: #323b50;
+            background: #171d2c;
+        }
+
+        html[data-theme="dark"]
+        .auth-password-toggle:hover {
+            background: #252c3e;
+        }
+
+        @keyframes authFadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes authCardIn {
+            from {
+                opacity: 0;
+                transform:
+                    translateY(18px)
+                    scale(0.985);
+            }
+            to {
+                opacity: 1;
+                transform:
+                    translateY(0)
+                    scale(1);
+            }
+        }
+
+        @keyframes authFormIn {
+            from {
+                opacity: 0;
+                transform:
+                    translateY(6px);
+            }
+            to {
+                opacity: 1;
+                transform:
+                    translateY(0);
+            }
+        }
+
+        @keyframes authFloat {
+            0%,
+            100% {
+                transform:
+                    translate3d(0, 0, 0)
+                    scale(1);
+            }
+            50% {
+                transform:
+                    translate3d(14px, -18px, 0)
+                    scale(1.04);
+            }
+        }
+
+        @keyframes authRotate {
+            from {
+                transform:
+                    translate(-50%, -50%)
+                    rotate(0deg);
+            }
+            to {
+                transform:
+                    translate(-50%, -50%)
+                    rotate(360deg);
+            }
+        }
+
+        @keyframes authRotateReverse {
+            from {
+                transform:
+                    translate(-50%, -50%)
+                    rotate(360deg);
+            }
+            to {
+                transform:
+                    translate(-50%, -50%)
+                    rotate(0deg);
+            }
+        }
+
+        @media (max-width: 850px) {
+            .auth-shell {
+                width:
+                    min(
+                        520px,
+                        calc(100vw - 28px)
+                    );
+                min-height: auto;
+                grid-template-columns: 1fr;
+            }
+
+            .auth-visual {
+                min-height: 210px;
+                padding: 28px;
+            }
+
+            .auth-hero {
+                margin-top: 42px;
+            }
+
+            .auth-hero h1 {
+                font-size: 30px;
+            }
+
+            .auth-hero p,
+            .auth-feature-row {
+                display: none;
+            }
+
+            .auth-panel {
+                padding:
+                    34px
+                    30px
+                    38px;
+            }
+        }
+
+        @media (max-width: 520px) {
+            .auth-screen {
+                overflow-y: auto;
+                padding:
+                    14px
+                    0;
+            }
+
+            .auth-shell {
+                width:
+                    calc(100vw - 20px);
+                border-radius: 24px;
+            }
+
+            .auth-visual {
+                min-height: 170px;
+                padding: 23px;
+            }
+
+            .auth-hero {
+                margin-top: 28px;
+            }
+
+            .auth-hero h1 {
+                margin-top: 13px;
+                font-size: 26px;
+            }
+
+            .auth-panel {
+                padding:
+                    28px
+                    22px
+                    32px;
+            }
+
+            .auth-user-name {
+                display: none;
+            }
+        }
+
+
+/* VARIANT: AURORA GLASS */
+.auth-screen {
+    background:
+        radial-gradient(circle at 18% 18%, rgba(126, 93, 255, .34), transparent 31%),
+        radial-gradient(circle at 82% 20%, rgba(55, 175, 255, .28), transparent 28%),
+        radial-gradient(circle at 70% 82%, rgba(56, 226, 184, .18), transparent 26%),
+        linear-gradient(145deg, #f5f2ff, #edf5ff 52%, #f5fffc);
+}
+.auth-shell {
+    width: min(1040px, calc(100vw - 42px));
+    border-radius: 36px;
+    border: 1px solid rgba(255,255,255,.82);
+    background: rgba(255,255,255,.56);
+    box-shadow: 0 40px 110px rgba(71,65,130,.22);
+}
+.auth-visual {
+    background:
+        radial-gradient(circle at 20% 18%, rgba(255,255,255,.25), transparent 25%),
+        linear-gradient(145deg, #7659ff 0%, #5577ff 52%, #35a7d7 100%);
+}
+.auth-panel { background: rgba(255,255,255,.74); }
+.auth-submit {
+    border-radius: 16px;
+    background: linear-gradient(135deg, #745dff, #4f7cff);
+    box-shadow: 0 14px 30px rgba(88,91,235,.28);
+}
+.auth-input { border-radius: 15px; }
+.auth-brand-mark { border-radius: 16px; }
+
+
+        /* =========================================
+           FINAL KNOWLEDGEHUB-NATIVE AURORA POLISH
+           ========================================= */
+
+        .app-shell {
+            opacity: 1;
+            transform: scale(1);
+            transition:
+                opacity 0.34s ease,
+                transform 0.34s ease;
+        }
+
+        body.auth-active .app-shell {
+            display: none;
+        }
+
+        body.auth-transitioning .app-shell {
+            display: grid;
+            opacity: 0;
+            transform: scale(0.992);
+        }
+
+        .auth-screen.auth-exit {
+            animation:
+                authExit
+                0.34s
+                ease
+                forwards;
+            pointer-events: none;
+        }
+
+        .auth-shell {
+            width: min(1020px, calc(100vw - 42px));
+            min-height: 600px;
+            border-radius: 30px;
+            box-shadow:
+                0 32px 88px rgba(58, 66, 120, 0.18),
+                inset 0 1px 0 rgba(255, 255, 255, 0.80);
+        }
+
+        .auth-visual {
+            background:
+                radial-gradient(
+                    circle at 18% 14%,
+                    rgba(255, 255, 255, 0.20),
+                    transparent 25%
+                ),
+                radial-gradient(
+                    circle at 84% 84%,
+                    rgba(79, 124, 255, 0.18),
+                    transparent 25%
+                ),
+                linear-gradient(
+                    145deg,
+                    #7c6cff 0%,
+                    #6d5dfc 48%,
+                    #4f7cff 100%
+                );
+        }
+
+        .auth-panel {
+            background:
+                rgba(255, 255, 255, 0.76);
+        }
+
+        .auth-panel-head h2 {
+            color: #1c2333;
+        }
+
+        .auth-panel-head p {
+            color: #697386;
+        }
+
+        .auth-tab.active {
+            color: #5948ee;
+        }
+
+        .auth-input {
+            border-radius: 13px;
+        }
+
+        .auth-input:focus {
+            border-color:
+                rgba(109, 93, 252, 0.72);
+            box-shadow:
+                0 0 0 4px
+                rgba(109, 93, 252, 0.10);
+        }
+
+        .auth-submit {
+            border-radius: 13px;
+            background:
+                linear-gradient(
+                    135deg,
+                    #6d5dfc,
+                    #5b6cff
+                );
+            box-shadow:
+                0 10px 24px
+                rgba(109, 93, 252, 0.24);
+        }
+
+        .auth-submit:hover {
+            box-shadow:
+                0 13px 28px
+                rgba(109, 93, 252, 0.30);
+        }
+
+        .auth-feature {
+            border-radius: 12px;
+        }
+
+        .auth-feature-label {
+            font-size: 10px;
+            letter-spacing: 0.1px;
+        }
+
+        @keyframes authExit {
+            from {
+                opacity: 1;
+                transform: scale(1);
+            }
+
+            to {
+                opacity: 0;
+                transform: scale(1.012);
+            }
+        }
+
+
+        /* =========================================
+           AUTH BOOT / SESSION RESTORE
+           ========================================= */
+
+        html.auth-booting body {
+            overflow: hidden;
+        }
+
+        html.auth-booting .app-shell,
+        html.auth-booting .auth-screen {
+            visibility: hidden !important;
+            opacity: 0 !important;
+            pointer-events: none !important;
+        }
+
+        .auth-boot-screen {
+            position: fixed;
+            inset: 0;
+            z-index: 10000;
+            display: none;
+            place-items: center;
+            overflow: hidden;
+            background:
+                radial-gradient(
+                    circle at 16% 18%,
+                    rgba(124, 108, 255, 0.18),
+                    transparent 30%
+                ),
+                radial-gradient(
+                    circle at 84% 16%,
+                    rgba(79, 124, 255, 0.14),
+                    transparent 28%
+                ),
+                var(--bg);
+        }
+
+        html.auth-booting .auth-boot-screen {
+            display: grid;
+        }
+
+        .auth-boot-inner {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 14px;
+            text-align: center;
+            animation:
+                authBootIn
+                0.30s
+                ease
+                both;
+        }
+
+        .auth-boot-logo {
+            width: 58px;
+            height: 58px;
+            display: grid;
+            place-items: center;
+            border-radius: 18px;
+            color: white;
+            font-size: 21px;
+            font-weight: 800;
+            background:
+                linear-gradient(
+                    135deg,
+                    #7c6cff,
+                    #5b6cff
+                );
+            box-shadow:
+                0 14px 34px
+                rgba(109, 93, 252, 0.28);
+        }
+
+        .auth-boot-spinner {
+            width: 24px;
+            height: 24px;
+            margin-top: 2px;
+            border:
+                2px solid
+                rgba(109, 93, 252, 0.16);
+            border-top-color:
+                var(--primary);
+            border-radius: 50%;
+            animation:
+                knowledgeSpin
+                0.72s
+                linear
+                infinite;
+        }
+
+        .auth-boot-title {
+            color: var(--text-primary);
+            font-size: 14px;
+            font-weight: 750;
+            letter-spacing: -0.15px;
+        }
+
+        .auth-boot-text {
+            color: var(--text-muted);
+            font-size: 11px;
+        }
+
+        @keyframes authBootIn {
+            from {
+                opacity: 0;
+                transform: translateY(5px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+
+        /* =========================================
+           ADMIN USER MANAGEMENT
+           ========================================= */
+
+        .admin-menu-action {
+            color: var(--primary-dark);
+        }
+
+        .admin-menu-action:hover {
+            background: var(--primary-soft);
+            color: var(--primary-dark);
+        }
+
+        .admin-menu-action-icon {
+            width: 25px;
+            height: 25px;
+            flex-shrink: 0;
+            display: grid;
+            place-items: center;
+            border-radius: 8px;
+            background: var(--primary-soft);
+            color: var(--primary-dark);
+            font-size: 10px;
+            font-weight: 800;
+        }
+
+        .admin-modal {
+            position: fixed;
+            inset: 0;
+            z-index: 12000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 26px;
+            background:
+                rgba(20, 25, 38, 0.38);
+            backdrop-filter:
+                blur(8px);
+        }
+
+        .admin-modal.open {
+            display: flex;
+            animation:
+                authFadeIn
+                0.18s
+                ease
+                both;
+        }
+
+        .admin-panel {
+            width:
+                min(
+                    980px,
+                    calc(100vw - 34px)
+                );
+            max-height:
+                min(
+                    760px,
+                    calc(100vh - 42px)
+                );
+            overflow: hidden;
+            border:
+                1px solid
+                var(--border);
+            border-radius: 24px;
+            background:
+                rgba(255, 255, 255, 0.95);
+            backdrop-filter:
+                blur(28px)
+                saturate(140%);
+            box-shadow:
+                0 34px 90px
+                rgba(34, 42, 74, 0.24);
+            animation:
+                authCardIn
+                0.24s
+                cubic-bezier(.2, .8, .2, 1)
+                both;
+        }
+
+        .admin-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            padding:
+                22px
+                24px;
+            border-bottom:
+                1px solid
+                var(--border);
+        }
+
+        .admin-heading-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .admin-heading-icon {
+            width: 40px;
+            height: 40px;
+            flex-shrink: 0;
+            display: grid;
+            place-items: center;
+            border-radius: 13px;
+            color: white;
+            background:
+                linear-gradient(
+                    135deg,
+                    var(--primary),
+                    var(--blue)
+                );
+            box-shadow:
+                0 8px 20px
+                rgba(109, 93, 252, 0.22);
+            font-size: 13px;
+            font-weight: 800;
+        }
+
+        .admin-title {
+            color: var(--text-primary);
+            font-size: 17px;
+            font-weight: 800;
+            letter-spacing: -0.3px;
+        }
+
+        .admin-subtitle {
+            margin-top: 3px;
+            color: var(--text-muted);
+            font-size: 10px;
+        }
+
+        .admin-close {
+            width: 34px;
+            height: 34px;
+            border:
+                1px solid
+                var(--border);
+            border-radius: 10px;
+            display: grid;
+            place-items: center;
+            background: var(--surface);
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .admin-close:hover {
+            color: var(--text-primary);
+            background: var(--surface-solid);
+        }
+
+        .admin-summary {
+            display: grid;
+            grid-template-columns:
+                repeat(
+                    3,
+                    minmax(0, 1fr)
+                );
+            gap: 10px;
+            padding:
+                16px
+                24px
+                0;
+        }
+
+        .admin-summary-card {
+            padding: 13px 14px;
+            border:
+                1px solid
+                var(--border);
+            border-radius: 13px;
+            background: var(--surface-soft);
+        }
+
+        .admin-summary-label {
+            color: var(--text-muted);
+            font-size: 9px;
+            font-weight: 750;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .admin-summary-value {
+            margin-top: 6px;
+            color: var(--text-primary);
+            font-size: 19px;
+            font-weight: 800;
+        }
+
+        .admin-body {
+            max-height:
+                calc(100vh - 250px);
+            overflow-y: auto;
+            padding: 16px 24px 24px;
+        }
+
+        .admin-users {
+            display: flex;
+            flex-direction: column;
+            gap: 9px;
+        }
+
+        .admin-user-row {
+            display: grid;
+            grid-template-columns:
+                minmax(190px, 1.5fr)
+                88px
+                100px
+                128px
+                minmax(230px, auto);
+            align-items: center;
+            gap: 12px;
+            padding: 13px;
+            border:
+                1px solid
+                var(--border);
+            border-radius: 14px;
+            background: var(--surface);
+        }
+
+        .admin-user-main {
+            min-width: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .admin-user-avatar {
+            width: 34px;
+            height: 34px;
+            flex-shrink: 0;
+            display: grid;
+            place-items: center;
+            border-radius: 11px;
+            color: white;
+            background:
+                linear-gradient(
+                    135deg,
+                    var(--primary),
+                    var(--blue)
+                );
+            font-size: 10px;
+            font-weight: 800;
+        }
+
+        .admin-user-name {
+            overflow: hidden;
+            color: var(--text-primary);
+            font-size: 11px;
+            font-weight: 750;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .admin-user-email {
+            margin-top: 2px;
+            overflow: hidden;
+            color: var(--text-muted);
+            font-size: 9px;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .admin-badge {
+            width: fit-content;
+            padding: 5px 8px;
+            border-radius: 999px;
+            font-size: 9px;
+            font-weight: 750;
+        }
+
+        .admin-badge.role-admin {
+            color: var(--primary-dark);
+            background: var(--primary-soft);
+        }
+
+        .admin-badge.role-member {
+            color: var(--text-secondary);
+            background: var(--surface-soft);
+        }
+
+        .admin-badge.active {
+            color: #16825c;
+            background: #e9f8f1;
+        }
+
+        .admin-badge.disabled {
+            color: var(--red);
+            background:
+                rgba(223, 92, 104, 0.10);
+        }
+
+        .admin-user-stats {
+            color: var(--text-secondary);
+            font-size: 9px;
+            line-height: 1.5;
+        }
+
+        .admin-user-actions {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 6px;
+        }
+
+        .admin-action {
+            border:
+                1px solid
+                var(--border);
+            padding: 7px 8px;
+            border-radius: 8px;
+            background: var(--surface-solid);
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 9px;
+            font-weight: 700;
+        }
+
+        .admin-action:hover {
+            border-color: var(--border-strong);
+            color: var(--text-primary);
+        }
+
+        .admin-action.warning {
+            color: #a16b13;
+        }
+
+        .admin-action.danger {
+            color: var(--red);
+        }
+
+        .admin-action:disabled {
+            opacity: 0.42;
+            cursor: not-allowed;
+        }
+
+        .admin-loading,
+        .admin-empty,
+        .admin-error {
+            padding: 30px 12px;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 11px;
+        }
+
+        .admin-error {
+            color: var(--red);
+        }
+
+        html[data-theme="dark"]
+        .admin-panel {
+            background:
+                rgba(20, 25, 39, 0.97);
+        }
+
+        html[data-theme="dark"]
+        .admin-badge.active {
+            color: #75d8b0;
+            background: #17382d;
+        }
+
+        @media (max-width: 900px) {
+            .admin-user-row {
+                grid-template-columns:
+                    minmax(180px, 1fr)
+                    84px
+                    92px;
+            }
+
+            .admin-user-stats {
+                display: none;
+            }
+
+            .admin-user-actions {
+                grid-column:
+                    1 / -1;
+                justify-content:
+                    flex-start;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .admin-modal {
+                padding: 10px;
+            }
+
+            .admin-panel {
+                width: 100%;
+                max-height:
+                    calc(100vh - 20px);
+                border-radius: 18px;
+            }
+
+            .admin-summary {
+                grid-template-columns:
+                    1fr
+                    1fr
+                    1fr;
+                padding:
+                    13px
+                    14px
+                    0;
+            }
+
+            .admin-body {
+                padding:
+                    13px
+                    14px
+                    18px;
+            }
+
+            .admin-header {
+                padding:
+                    17px
+                    16px;
+            }
+
+            .admin-user-row {
+                grid-template-columns:
+                    1fr
+                    auto;
+            }
+
+            .admin-user-row
+            > .admin-badge:nth-of-type(2) {
+                display: none;
+            }
+        }
+
+
+        /* =========================================
+           PASSWORD RESET / FORCED CHANGE
+           ========================================= */
+
+        .password-modal {
+            position: fixed;
+            inset: 0;
+            z-index: 13000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background: rgba(20, 25, 38, 0.42);
+            backdrop-filter: blur(9px);
+        }
+
+        .password-modal.open {
+            display: flex;
+        }
+
+        .password-card {
+            width: min(470px, calc(100vw - 28px));
+            border: 1px solid var(--border);
+            border-radius: 22px;
+            background: rgba(255,255,255,0.97);
+            box-shadow: 0 30px 80px rgba(35,45,80,0.24);
+            padding: 24px;
+        }
+
+        html[data-theme="dark"] .password-card {
+            background: rgba(20,25,39,0.98);
+        }
+
+        .password-card h3 {
+            margin: 0;
+            color: var(--text-primary);
+            font-size: 18px;
+        }
+
+        .password-card p {
+            margin: 8px 0 18px;
+            color: var(--text-secondary);
+            font-size: 11px;
+            line-height: 1.55;
+        }
+
+        .temporary-password-box {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            padding: 10px;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            background: var(--surface-soft);
+        }
+
+        .temporary-password-value {
+            flex: 1;
+            overflow-wrap: anywhere;
+            color: var(--text-primary);
+            font-family: Consolas, Monaco, monospace;
+            font-size: 14px;
+            font-weight: 750;
+        }
+
+        .password-warning {
+            margin-top: 12px;
+            padding: 10px 11px;
+            border-radius: 11px;
+            background: rgba(223, 92, 104, 0.08);
+            color: var(--red);
+            font-size: 10px;
+            line-height: 1.5;
+        }
+
+        .password-modal-actions {
+            margin-top: 18px;
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+        }
+
+        .password-primary-button,
+        .password-secondary-button {
+            border-radius: 10px;
+            padding: 9px 12px;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: 750;
+        }
+
+        .password-primary-button {
+            border: none;
+            color: white;
+            background:
+                linear-gradient(
+                    135deg,
+                    var(--primary),
+                    var(--blue)
+                );
+        }
+
+        .password-secondary-button {
+            color: var(--text-secondary);
+            background: var(--surface-soft);
+            border: 1px solid var(--border);
+        }
+
+        .force-password-error {
+            min-height: 16px;
+            margin-top: 8px;
+            color: var(--red);
+            font-size: 10px;
+        }
+
+
+        .visual-source-badge {
+            display: inline-flex;
+            align-items: center;
+            width: fit-content;
+            margin-top: 5px;
+            padding: 3px 7px;
+            border-radius: 999px;
+            background: var(--primary-soft);
+            color: var(--primary-dark);
+            font-size: 8px;
+            font-weight: 800;
+            letter-spacing: 0.45px;
+            text-transform: uppercase;
+        }
+
     </style>
 
 </head>
 
 
 <body>
+
+
+<div
+    id="authBootScreen"
+    class="auth-boot-screen"
+    aria-live="polite"
+>
+    <div class="auth-boot-inner">
+        <div class="auth-boot-logo">
+            K
+        </div>
+
+        <div class="auth-boot-spinner"></div>
+
+        <div class="auth-boot-title">
+            Restoring your workspace
+        </div>
+
+        <div class="auth-boot-text">
+            Securing your KnowledgeHub sessionâ€¦
+        </div>
+    </div>
+</div>
+
+
+
+
+<div
+    id="adminModal"
+    class="admin-modal"
+    aria-hidden="true"
+>
+    <section
+        class="admin-panel"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="adminTitle"
+    >
+        <header class="admin-header">
+            <div class="admin-heading-row">
+                <div class="admin-heading-icon">
+                    A
+                </div>
+
+                <div>
+                    <div
+                        id="adminTitle"
+                        class="admin-title"
+                    >
+                        User Management
+                    </div>
+
+                    <div class="admin-subtitle">
+                        Manage access, sessions, and departed-user accounts.
+                    </div>
+                </div>
+            </div>
+
+            <button
+                id="adminCloseButton"
+                class="admin-close"
+                type="button"
+                aria-label="Close admin console"
+            >
+                Ã—
+            </button>
+        </header>
+
+        <section class="admin-summary">
+            <div class="admin-summary-card">
+                <div class="admin-summary-label">
+                    Users
+                </div>
+
+                <div
+                    id="adminTotalUsers"
+                    class="admin-summary-value"
+                >
+                    â€”
+                </div>
+            </div>
+
+            <div class="admin-summary-card">
+                <div class="admin-summary-label">
+                    Active
+                </div>
+
+                <div
+                    id="adminActiveUsers"
+                    class="admin-summary-value"
+                >
+                    â€”
+                </div>
+            </div>
+
+            <div class="admin-summary-card">
+                <div class="admin-summary-label">
+                    Disabled
+                </div>
+
+                <div
+                    id="adminDisabledUsers"
+                    class="admin-summary-value"
+                >
+                    â€”
+                </div>
+            </div>
+        </section>
+
+        <div class="admin-body">
+            <div
+                id="adminUsers"
+                class="admin-users"
+            >
+                <div class="admin-loading">
+                    Loading usersâ€¦
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+
+
+<div
+    id="temporaryPasswordModal"
+    class="password-modal"
+    aria-hidden="true"
+>
+    <div class="password-card">
+        <h3>Password reset successful</h3>
+        <p id="temporaryPasswordUser">
+            Temporary credentials generated.
+        </p>
+
+        <div class="temporary-password-box">
+            <div
+                id="temporaryPasswordValue"
+                class="temporary-password-value"
+            >
+                â€”
+            </div>
+
+            <button
+                id="copyTemporaryPasswordButton"
+                class="password-secondary-button"
+                type="button"
+            >
+                Copy
+            </button>
+        </div>
+
+        <div class="password-warning">
+            This temporary password is shown only once.
+            Existing sessions were revoked. Share it only
+            with the verified user through an approved channel.
+            The user must create a new password after signing in.
+        </div>
+
+        <div class="password-modal-actions">
+            <button
+                id="temporaryPasswordDoneButton"
+                class="password-primary-button"
+                type="button"
+            >
+                Done
+            </button>
+        </div>
+    </div>
+</div>
+
+<div
+    id="forcePasswordModal"
+    class="password-modal"
+    aria-hidden="true"
+>
+    <div class="password-card">
+        <h3>Create a new password</h3>
+        <p>
+            You signed in with a temporary password.
+            Create your permanent password before continuing
+            to KnowledgeHub.
+        </p>
+
+        <form
+            id="forcePasswordForm"
+            autocomplete="off"
+        >
+            <div class="auth-field">
+                <label for="forceNewPassword">
+                    New password
+                </label>
+                <input
+                    id="forceNewPassword"
+                    class="auth-input"
+                    type="password"
+                    autocomplete="new-password"
+                    minlength="8"
+                    required
+                >
+            </div>
+
+            <div class="auth-field">
+                <label for="forceConfirmPassword">
+                    Confirm new password
+                </label>
+                <input
+                    id="forceConfirmPassword"
+                    class="auth-input"
+                    type="password"
+                    autocomplete="new-password"
+                    minlength="8"
+                    required
+                >
+            </div>
+
+            <div
+                id="forcePasswordError"
+                class="force-password-error"
+                aria-live="polite"
+            ></div>
+
+            <div class="password-modal-actions">
+                <button
+                    id="forcePasswordSubmitButton"
+                    class="password-primary-button"
+                    type="submit"
+                >
+                    Save new password
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div
+    id="authScreen"
+    class="auth-screen"
+    aria-hidden="true"
+>
+    <div class="auth-noise"></div>
+    <div class="auth-orb auth-orb-one"></div>
+    <div class="auth-orb auth-orb-two"></div>
+
+    <div class="auth-shell">
+
+        <section class="auth-visual">
+
+            <div class="auth-brand">
+                <div class="auth-brand-mark">
+                    K
+                </div>
+
+                <div class="auth-brand-copy">
+                    <strong>
+                        KnowledgeHub AI
+                    </strong>
+                    <span>
+                        Version 3
+                    </span>
+                </div>
+            </div>
+
+            <div class="auth-hero">
+                <div class="auth-kicker">
+                    <span class="auth-kicker-dot"></span>
+                    Private AI workspace
+                </div>
+
+                <h1>
+                    Your documents.
+                    <br>
+                    Made conversational.
+                </h1>
+
+                <p>
+                    Sign in to your private KnowledgeHub workspace.
+                    Search your documents, keep conversations organized,
+                    and get answers grounded in your own knowledge base.
+                </p>
+            </div>
+
+            <div class="auth-feature-row">
+                <div class="auth-feature">
+                    <div class="auth-feature-icon">â—ˆ</div>
+                    <div class="auth-feature-label">
+                        Private documents
+                    </div>
+                </div>
+
+                <div class="auth-feature">
+                    <div class="auth-feature-icon">â—Ž</div>
+                    <div class="auth-feature-label">
+                        Grounded answers
+                    </div>
+                </div>
+
+                <div class="auth-feature">
+                    <div class="auth-feature-icon">âœ¦</div>
+                    <div class="auth-feature-label">
+                        Isolated sessions
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+        <section class="auth-panel">
+
+            <div class="auth-panel-head">
+                <h2 id="authTitle">
+                    Welcome back
+                </h2>
+
+                <p id="authSubtitle">
+                    Sign in to continue to your knowledge workspace.
+                </p>
+            </div>
+
+            <div
+                id="authTabs"
+                class="auth-tabs"
+            >
+                <div class="auth-tab-indicator"></div>
+
+                <button
+                    id="loginTabButton"
+                    class="auth-tab active"
+                    type="button"
+                >
+                    Sign in
+                </button>
+
+                <button
+                    id="registerTabButton"
+                    class="auth-tab"
+                    type="button"
+                >
+                    Create account
+                </button>
+            </div>
+
+            <form
+                id="loginForm"
+                class="auth-form active"
+                method="post"
+                action="http://127.0.0.1:8000/auth/login"
+                autocomplete="on"
+            >
+                <div class="auth-field">
+                    <label for="loginEmail">
+                        Email
+                    </label>
+
+                    <div class="auth-input-wrap">
+                        <input
+                            id="loginEmail"
+                            name="username"
+                            class="auth-input"
+                            type="email"
+                            autocomplete="username"
+                            placeholder="you@example.com"
+                            required
+                        >
+                    </div>
+                </div>
+
+                <div class="auth-field">
+                    <label for="loginPassword">
+                        Password
+                    </label>
+
+                    <div class="auth-input-wrap">
+                        <input
+                            id="loginPassword"
+                            name="password"
+                            class="auth-input"
+                            type="password"
+                            autocomplete="current-password"
+                            placeholder="Enter your password"
+                            required
+                        >
+
+                        <button
+                            class="auth-password-toggle"
+                            type="button"
+                            data-password-target="loginPassword"
+                        >
+                            Show
+                        </button>
+                    </div>
+                </div>
+
+                <button
+                    id="loginSubmitButton"
+                    class="auth-submit"
+                    type="submit"
+                >
+                    <span class="auth-submit-spinner"></span>
+                    <span class="auth-submit-text">
+                        Enter KnowledgeHub
+                    </span>
+                    <span>â†’</span>
+                </button>
+            </form>
+
+            <form
+                id="registerForm"
+                class="auth-form"
+                method="post"
+                action="http://127.0.0.1:8000/auth/register"
+                autocomplete="on"
+            >
+                <div class="auth-field">
+                    <label for="registerName">
+                        Name
+                    </label>
+
+                    <div class="auth-input-wrap">
+                        <input
+                            id="registerName"
+                            name="name"
+                            class="auth-input"
+                            type="text"
+                            autocomplete="name"
+                            placeholder="Your name"
+                            required
+                        >
+                    </div>
+                </div>
+
+                <div class="auth-field">
+                    <label for="registerEmail">
+                        Email
+                    </label>
+
+                    <div class="auth-input-wrap">
+                        <input
+                            id="registerEmail"
+                            name="username"
+                            class="auth-input"
+                            type="email"
+                            autocomplete="username"
+                            placeholder="you@example.com"
+                            required
+                        >
+                    </div>
+                </div>
+
+                <div class="auth-field">
+                    <label for="registerPassword">
+                        Password
+                    </label>
+
+                    <div class="auth-input-wrap">
+                        <input
+                            id="registerPassword"
+                            name="new-password"
+                            class="auth-input"
+                            type="password"
+                            autocomplete="new-password"
+                            minlength="8"
+                            placeholder="Minimum 8 characters"
+                            required
+                        >
+
+                        <button
+                            class="auth-password-toggle"
+                            type="button"
+                            data-password-target="registerPassword"
+                        >
+                            Show
+                        </button>
+                    </div>
+                </div>
+
+                <button
+                    id="registerSubmitButton"
+                    class="auth-submit"
+                    type="submit"
+                >
+                    <span class="auth-submit-spinner"></span>
+                    <span class="auth-submit-text">
+                        Create my workspace
+                    </span>
+                    <span>â†’</span>
+                </button>
+            </form>
+
+            <div
+                id="authSessionLoading"
+                class="auth-session-loading"
+            >
+                <span class="knowledge-spinner"></span>
+                <span>
+                    Restoring your secure sessionâ€¦
+                </span>
+            </div>
+
+            <div
+                id="authError"
+                class="auth-error"
+                aria-live="polite"
+            ></div>
+
+            <div class="auth-footnote">
+                Your account separates your documents,
+                conversations, and retrieval context from other users.
+            </div>
+
+        </section>
+
+    </div>
+</div>
+
 
 
 <div class="app-shell">
@@ -2443,7 +4956,7 @@
                 </div>
 
                 <div class="brand-version">
-                    Version 2
+                    Version 3
                 </div>
 
             </div>
@@ -2499,7 +5012,7 @@
                     class="tiny-button"
                     title="Refresh documents"
                 >
-                    ↻
+                    â†»
                 </button>
 
             </div>
@@ -2508,7 +5021,8 @@
             <input
                 id="fileInput"
                 type="file"
-                accept=".pdf,application/pdf"
+                multiple
+                accept=".pdf,.docx,.txt,.md,.markdown,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain,text/markdown"
             >
 
 
@@ -2517,15 +5031,15 @@
                 <button
                     id="selectFileButton"
                     class="add-document-button"
-                    title="Choose PDF document"
+                    title="Choose up to 10 supported documents"
                 >
-                    + Add PDF
+                    + Add File
                 </button>
 
 
                 <button
                     id="uploadButton"
-                    title="Upload selected document"
+                    title="Upload selected documents"
                 >
                     Upload
                 </button>
@@ -2570,6 +5084,131 @@
 
             <div class="workspace-actions">
 
+
+                <div
+                    id="authAccount"
+                    class="auth-account"
+                >
+                    <button
+                        id="authUser"
+                        class="auth-user"
+                        type="button"
+                        title="Account menu"
+                        aria-haspopup="menu"
+                        aria-expanded="false"
+                    >
+                        <div
+                            id="authUserAvatar"
+                            class="auth-user-avatar"
+                        >
+                            U
+                        </div>
+
+                        <div
+                            id="authUserName"
+                            class="auth-user-name"
+                        >
+                            User
+                        </div>
+
+                        <span
+                            class="auth-user-chevron"
+                            aria-hidden="true"
+                        >
+                            â–¾
+                        </span>
+                    </button>
+
+                    <div
+                        id="accountMenu"
+                        class="account-menu"
+                        role="menu"
+                        aria-hidden="true"
+                    >
+                        <div class="account-menu-profile">
+
+                            <div
+                                id="accountMenuAvatar"
+                                class="account-menu-avatar"
+                            >
+                                U
+                            </div>
+
+                            <div class="account-menu-identity">
+
+                                <div
+                                    id="accountMenuName"
+                                    class="account-menu-name"
+                                >
+                                    User
+                                </div>
+
+                                <div
+                                    id="accountMenuEmail"
+                                    class="account-menu-email"
+                                >
+                                    user@example.com
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        <div class="account-menu-divider"></div>
+
+                        <div class="account-menu-note">
+                            <div class="account-menu-note-icon">
+                                â—ˆ
+                            </div>
+
+                            <div>
+                                Private workspace
+                                <br>
+                                Your data is isolated to this account.
+                            </div>
+                        </div>
+
+                        <div class="account-menu-divider"></div>
+
+                        <button
+                            id="adminConsoleButton"
+                            class="account-menu-action admin-menu-action"
+                            type="button"
+                            role="menuitem"
+                            hidden
+                        >
+                            <span class="admin-menu-action-icon">
+                                A
+                            </span>
+
+                            <span>
+                                Admin console
+                            </span>
+                        </button>
+
+                        <div
+                            id="adminMenuDivider"
+                            class="account-menu-divider"
+                            hidden
+                        ></div>
+
+                        <button
+                            id="logoutButton"
+                            class="account-menu-action sign-out"
+                            type="button"
+                            role="menuitem"
+                        >
+                            <span class="account-menu-action-icon">
+                                â†—
+                            </span>
+
+                            <span>
+                                Sign out
+                            </span>
+                        </button>
+                    </div>
+                </div>
+
                 <div class="status-chip">
 
                     <span class="status-dot"></span>
@@ -2584,7 +5223,7 @@
                     type="button"
                     title="Switch theme"
                 >
-                    <span id="themeToggleIcon">☾</span>
+                    <span id="themeToggleIcon">â˜¾</span>
                     <span
                         id="themeToggleLabel"
                         class="header-tool-label"
@@ -2622,7 +5261,7 @@
             <section class="welcome-panel">
 
                 <div class="welcome-eyebrow">
-                    KnowledgeHub AI V2
+                    KnowledgeHub AI V3
                 </div>
 
                 <h1 class="welcome-title">
@@ -2651,7 +5290,7 @@
                         id="documentCount"
                         class="stat-value"
                     >
-                        —
+                        â€”
                     </div>
 
                     <div class="stat-note">
@@ -2671,7 +5310,7 @@
                         id="chatCount"
                         class="stat-value"
                     >
-                        —
+                        â€”
                     </div>
 
                     <div class="stat-note">
@@ -2691,7 +5330,7 @@
                         id="sessionDisplay"
                         class="stat-value"
                     >
-                        —
+                        â€”
                     </div>
 
                     <div class="stat-note">
@@ -2737,7 +5376,7 @@
                     </h2>
 
                     <p>
-                        Add a PDF from the Knowledge Base panel,
+                        Add a supported file from the Knowledge Base panel,
                         then ask a question about its contents.
                         KnowledgeHub will use retrieved document
                         context to answer.
@@ -2833,7 +5472,7 @@
             id="askButton"
             title="Ask KnowledgeHub"
         >
-            ↑
+            â†‘
         </button>
 
     </div>
@@ -2846,6 +5485,1720 @@
 
 const API_URL =
     "http://127.0.0.1:8000";
+
+
+const AUTH_TOKEN_KEY =
+    "knowledgehub_auth_token";
+
+let authToken =
+    localStorage.getItem(
+        AUTH_TOKEN_KEY
+    );
+
+let currentUser =
+    null;
+
+const nativeFetch =
+    window.fetch.bind(
+        window
+    );
+
+
+const authScreen =
+    document.getElementById(
+        "authScreen"
+    );
+
+const authTabs =
+    document.getElementById(
+        "authTabs"
+    );
+
+const loginTabButton =
+    document.getElementById(
+        "loginTabButton"
+    );
+
+const registerTabButton =
+    document.getElementById(
+        "registerTabButton"
+    );
+
+const loginForm =
+    document.getElementById(
+        "loginForm"
+    );
+
+const registerForm =
+    document.getElementById(
+        "registerForm"
+    );
+
+const loginEmail =
+    document.getElementById(
+        "loginEmail"
+    );
+
+const loginPassword =
+    document.getElementById(
+        "loginPassword"
+    );
+
+const registerName =
+    document.getElementById(
+        "registerName"
+    );
+
+const registerEmail =
+    document.getElementById(
+        "registerEmail"
+    );
+
+const registerPassword =
+    document.getElementById(
+        "registerPassword"
+    );
+
+const loginSubmitButton =
+    document.getElementById(
+        "loginSubmitButton"
+    );
+
+const registerSubmitButton =
+    document.getElementById(
+        "registerSubmitButton"
+    );
+
+const authError =
+    document.getElementById(
+        "authError"
+    );
+
+const authTitle =
+    document.getElementById(
+        "authTitle"
+    );
+
+const authSubtitle =
+    document.getElementById(
+        "authSubtitle"
+    );
+
+const authSessionLoading =
+    document.getElementById(
+        "authSessionLoading"
+    );
+
+const authUser =
+    document.getElementById(
+        "authUser"
+    );
+
+const authUserName =
+    document.getElementById(
+        "authUserName"
+    );
+
+const authUserAvatar =
+    document.getElementById(
+        "authUserAvatar"
+    );
+
+const authAccount =
+    document.getElementById(
+        "authAccount"
+    );
+
+const accountMenu =
+    document.getElementById(
+        "accountMenu"
+    );
+
+const accountMenuAvatar =
+    document.getElementById(
+        "accountMenuAvatar"
+    );
+
+const accountMenuName =
+    document.getElementById(
+        "accountMenuName"
+    );
+
+const accountMenuEmail =
+    document.getElementById(
+        "accountMenuEmail"
+    );
+
+const logoutButton =
+    document.getElementById(
+        "logoutButton"
+    );
+
+const temporaryPasswordModal =
+    document.getElementById(
+        "temporaryPasswordModal"
+    );
+
+const temporaryPasswordUser =
+    document.getElementById(
+        "temporaryPasswordUser"
+    );
+
+const temporaryPasswordValue =
+    document.getElementById(
+        "temporaryPasswordValue"
+    );
+
+const copyTemporaryPasswordButton =
+    document.getElementById(
+        "copyTemporaryPasswordButton"
+    );
+
+const temporaryPasswordDoneButton =
+    document.getElementById(
+        "temporaryPasswordDoneButton"
+    );
+
+const forcePasswordModal =
+    document.getElementById(
+        "forcePasswordModal"
+    );
+
+const forcePasswordForm =
+    document.getElementById(
+        "forcePasswordForm"
+    );
+
+const forceNewPassword =
+    document.getElementById(
+        "forceNewPassword"
+    );
+
+const forceConfirmPassword =
+    document.getElementById(
+        "forceConfirmPassword"
+    );
+
+const forcePasswordError =
+    document.getElementById(
+        "forcePasswordError"
+    );
+
+const forcePasswordSubmitButton =
+    document.getElementById(
+        "forcePasswordSubmitButton"
+    );
+
+const adminConsoleButton =
+    document.getElementById(
+        "adminConsoleButton"
+    );
+
+const adminMenuDivider =
+    document.getElementById(
+        "adminMenuDivider"
+    );
+
+const adminModal =
+    document.getElementById(
+        "adminModal"
+    );
+
+const adminCloseButton =
+    document.getElementById(
+        "adminCloseButton"
+    );
+
+const adminUsers =
+    document.getElementById(
+        "adminUsers"
+    );
+
+const adminTotalUsers =
+    document.getElementById(
+        "adminTotalUsers"
+    );
+
+const adminActiveUsers =
+    document.getElementById(
+        "adminActiveUsers"
+    );
+
+const adminDisabledUsers =
+    document.getElementById(
+        "adminDisabledUsers"
+    );
+
+
+
+function finishAuthBoot() {
+    document.documentElement.classList.remove(
+        "auth-booting"
+    );
+}
+
+
+async function offerCredentialSave(
+    email,
+    password,
+    name = ""
+) {
+    try {
+        if (
+            !window.PasswordCredential
+            || !navigator.credentials
+            || typeof navigator.credentials.store
+                !== "function"
+        ) {
+            return;
+        }
+
+        const credential =
+            new PasswordCredential({
+                id: email,
+                password: password,
+                name: name || email
+            });
+
+        await navigator.credentials.store(
+            credential
+        );
+    }
+    catch (error) {
+        // Password manager integration is optional.
+        // Authentication must still succeed when unsupported.
+        console.debug(
+            "Credential save not available:",
+            error
+        );
+    }
+}
+
+
+function setAuthToken(
+    token
+) {
+    authToken =
+        token || null;
+
+    if (authToken) {
+        localStorage.setItem(
+            AUTH_TOKEN_KEY,
+            authToken
+        );
+    }
+    else {
+        localStorage.removeItem(
+            AUTH_TOKEN_KEY
+        );
+    }
+}
+
+
+function showAuthScreen(
+    mode = "login"
+) {
+    document.body.classList.add(
+        "auth-active"
+    );
+
+    authScreen.classList.add(
+        "visible"
+    );
+
+    authScreen.setAttribute(
+        "aria-hidden",
+        "false"
+    );
+
+    setAuthMode(
+        mode
+    );
+}
+
+
+function hideAuthScreen() {
+    document.body.classList.add(
+        "auth-transitioning"
+    );
+
+    authScreen.classList.add(
+        "auth-exit"
+    );
+
+    authScreen.setAttribute(
+        "aria-hidden",
+        "true"
+    );
+
+    window.setTimeout(
+        () => {
+            authScreen.classList.remove(
+                "visible",
+                "auth-exit"
+            );
+
+            document.body.classList.remove(
+                "auth-active",
+                "auth-transitioning"
+            );
+        },
+        340
+    );
+}
+
+
+function setAuthMode(
+    mode
+) {
+    const isRegister =
+        mode === "register";
+
+    loginTabButton.classList.toggle(
+        "active",
+        !isRegister
+    );
+
+    registerTabButton.classList.toggle(
+        "active",
+        isRegister
+    );
+
+    loginForm.classList.toggle(
+        "active",
+        !isRegister
+    );
+
+    registerForm.classList.toggle(
+        "active",
+        isRegister
+    );
+
+    authTabs.classList.toggle(
+        "register-mode",
+        isRegister
+    );
+
+    authTitle.textContent =
+        isRegister
+            ? "Create your workspace"
+            : "Welcome back";
+
+    authSubtitle.textContent =
+        isRegister
+            ? "Set up a private KnowledgeHub account in seconds."
+            : "Sign in to continue to your knowledge workspace.";
+
+    authError.textContent =
+        "";
+
+    window.setTimeout(
+        () => {
+            (
+                isRegister
+                    ? registerName
+                    : loginEmail
+            ).focus();
+        },
+        80
+    );
+}
+
+
+function setAuthButtonLoading(
+    button,
+    loading
+) {
+    button.disabled =
+        loading;
+
+    button.classList.toggle(
+        "loading",
+        loading
+    );
+}
+
+
+function getUserInitials(
+    name
+) {
+    const parts =
+        String(
+            name || "User"
+        )
+        .trim()
+        .split(/\s+/)
+        .filter(Boolean)
+        .slice(0, 2);
+
+    if (!parts.length) {
+        return "U";
+    }
+
+    return parts
+        .map(
+            part =>
+                part.charAt(0)
+        )
+        .join("")
+        .toUpperCase();
+}
+
+
+function renderCurrentUser() {
+    const name =
+        currentUser?.name
+        || currentUser?.email
+        || "User";
+
+    const email =
+        currentUser?.email
+        || "";
+
+    const initials =
+        getUserInitials(
+            name
+        );
+
+    authUserName.textContent =
+        name;
+
+    authUserAvatar.textContent =
+        initials;
+
+    accountMenuName.textContent =
+        name;
+
+    accountMenuEmail.textContent =
+        email;
+
+    accountMenuAvatar.textContent =
+        initials;
+
+    authUser.title =
+        email
+            ? `${name} Â· ${email}`
+            : name;
+
+    const isAdmin =
+        currentUser?.role === "admin";
+
+    adminConsoleButton.hidden =
+        !isAdmin;
+
+    adminMenuDivider.hidden =
+        !isAdmin;
+}
+
+
+function setAccountMenuOpen(
+    open
+) {
+    accountMenu.classList.toggle(
+        "open",
+        open
+    );
+
+    accountMenu.setAttribute(
+        "aria-hidden",
+        String(!open)
+    );
+
+    authUser.setAttribute(
+        "aria-expanded",
+        String(open)
+    );
+}
+
+
+function toggleAccountMenu() {
+    const isOpen =
+        accountMenu.classList.contains(
+            "open"
+        );
+
+    setAccountMenuOpen(
+        !isOpen
+    );
+}
+
+function escapeAdminHtml(
+    value
+) {
+    return String(
+        value ?? ""
+    )
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+
+function openAdminModal() {
+    setAccountMenuOpen(
+        false
+    );
+
+    adminModal.classList.add(
+        "open"
+    );
+
+    adminModal.setAttribute(
+        "aria-hidden",
+        "false"
+    );
+
+    loadAdminUsers();
+}
+
+
+function closeAdminModal() {
+    adminModal.classList.remove(
+        "open"
+    );
+
+    adminModal.setAttribute(
+        "aria-hidden",
+        "true"
+    );
+}
+
+
+function renderAdminUsers(
+    users
+) {
+    const total =
+        users.length;
+
+    const active =
+        users.filter(
+            user =>
+                user.is_active
+        ).length;
+
+    adminTotalUsers.textContent =
+        total;
+
+    adminActiveUsers.textContent =
+        active;
+
+    adminDisabledUsers.textContent =
+        total - active;
+
+    if (!users.length) {
+        adminUsers.innerHTML =
+            '<div class="admin-empty">'
+            + 'No users found.'
+            + '</div>';
+
+        return;
+    }
+
+    adminUsers.innerHTML =
+        users.map(
+            user => {
+                const initials =
+                    getUserInitials(
+                        user.name
+                        || user.email
+                    );
+
+                const roleClass =
+                    user.role === "admin"
+                        ? "role-admin"
+                        : "role-member";
+
+                const statusClass =
+                    user.is_active
+                        ? "active"
+                        : "disabled";
+
+                const statusText =
+                    user.is_active
+                        ? "Active"
+                        : "Disabled";
+
+                const currentLabel =
+                    user.is_current_user
+                        ? " Â· You"
+                        : "";
+
+                const disableLabel =
+                    user.is_active
+                        ? "Disable"
+                        : "Enable";
+
+                const disableValue =
+                    !user.is_active;
+
+                const protectSelf =
+                    user.is_current_user
+                        ? "disabled"
+                        : "";
+
+                return `
+                    <div class="admin-user-row">
+
+                        <div class="admin-user-main">
+                            <div class="admin-user-avatar">
+                                ${escapeAdminHtml(initials)}
+                            </div>
+
+                            <div style="min-width:0">
+                                <div class="admin-user-name">
+                                    ${escapeAdminHtml(user.name)}
+                                    ${escapeAdminHtml(currentLabel)}
+                                </div>
+
+                                <div class="admin-user-email">
+                                    ${escapeAdminHtml(user.email)}
+                                </div>
+                            </div>
+                        </div>
+
+                        <span class="admin-badge ${roleClass}">
+                            ${escapeAdminHtml(user.role)}
+                        </span>
+
+                        <span class="admin-badge ${statusClass}">
+                            ${statusText}
+                        </span>
+
+                        <div class="admin-user-stats">
+                            ${user.document_count} docs Â·
+                            ${user.chat_count} chats
+                            <br>
+                            ${user.active_session_count} active session(s)
+                        </div>
+
+                        <div class="admin-user-actions">
+
+                            <button
+                                class="admin-action warning"
+                                type="button"
+                                data-admin-action="status"
+                                data-user-id="${user.id}"
+                                data-active="${disableValue}"
+                                ${protectSelf}
+                            >
+                                ${disableLabel}
+                            </button>
+
+                            <button
+                                class="admin-action"
+                                type="button"
+                                data-admin-action="reset-password"
+                                data-user-id="${user.id}"
+                                data-user-email="${escapeAdminHtml(user.email)}"
+                                ${protectSelf}
+                            >
+                                Reset password
+                            </button>
+
+                            <button
+                                class="admin-action"
+                                type="button"
+                                data-admin-action="revoke"
+                                data-user-id="${user.id}"
+                                ${protectSelf}
+                            >
+                                Revoke sessions
+                            </button>
+
+                            <button
+                                class="admin-action danger"
+                                type="button"
+                                data-admin-action="delete"
+                                data-user-id="${user.id}"
+                                data-user-email="${escapeAdminHtml(user.email)}"
+                                ${protectSelf}
+                            >
+                                Delete
+                            </button>
+
+                        </div>
+
+                    </div>
+                `;
+            }
+        )
+        .join("");
+}
+
+
+async function loadAdminUsers() {
+    adminUsers.innerHTML =
+        '<div class="admin-loading">'
+        + 'Loading usersâ€¦'
+        + '</div>';
+
+    try {
+        const response =
+            await authFetch(
+                `${API_URL}/admin/users`
+            );
+
+        if (!response.ok) {
+            throw new Error(
+                await readApiError(
+                    response,
+                    "Unable to load users."
+                )
+            );
+        }
+
+        const data =
+            await response.json();
+
+        renderAdminUsers(
+            data.users || []
+        );
+    }
+    catch (error) {
+        adminUsers.innerHTML =
+            '<div class="admin-error">'
+            + escapeAdminHtml(
+                error.message
+                || "Unable to load users."
+            )
+            + '</div>';
+    }
+}
+
+
+async function setAdminUserStatus(
+    userId,
+    isActive
+) {
+    const verb =
+        isActive
+            ? "enable"
+            : "disable";
+
+    if (
+        !window.confirm(
+            `Are you sure you want to ${verb} this user?`
+        )
+    ) {
+        return;
+    }
+
+    const response =
+        await authFetch(
+            `${API_URL}/admin/users/${userId}/status`,
+            {
+                method: "PATCH",
+                headers: {
+                    "Content-Type":
+                        "application/json"
+                },
+                body:
+                    JSON.stringify({
+                        is_active:
+                            isActive
+                    })
+            }
+        );
+
+    if (!response.ok) {
+        throw new Error(
+            await readApiError(
+                response,
+                `Unable to ${verb} user.`
+            )
+        );
+    }
+
+    await loadAdminUsers();
+}
+
+
+async function revokeAdminUserSessions(
+    userId
+) {
+    if (
+        !window.confirm(
+            "Revoke all active sessions for this user?"
+        )
+    ) {
+        return;
+    }
+
+    const response =
+        await authFetch(
+            `${API_URL}/admin/users/${userId}/revoke-sessions`,
+            {
+                method: "POST"
+            }
+        );
+
+    if (!response.ok) {
+        throw new Error(
+            await readApiError(
+                response,
+                "Unable to revoke sessions."
+            )
+        );
+    }
+
+    await loadAdminUsers();
+}
+
+
+async function deleteAdminUser(
+    userId,
+    email
+) {
+    if (
+        !window.confirm(
+            `Permanently delete ${email}? `
+            + "Their documents, chats, and sessions will be removed."
+        )
+    ) {
+        return;
+    }
+
+    const response =
+        await authFetch(
+            `${API_URL}/admin/users/${userId}`,
+            {
+                method: "DELETE"
+            }
+        );
+
+    if (!response.ok) {
+        throw new Error(
+            await readApiError(
+                response,
+                "Unable to delete user."
+            )
+        );
+    }
+
+    await loadAdminUsers();
+}
+
+
+function openTemporaryPasswordModal(
+    user,
+    password
+) {
+    temporaryPasswordUser.textContent =
+        `${user.name} Â· ${user.email}`;
+
+    temporaryPasswordValue.textContent =
+        password;
+
+    temporaryPasswordModal.classList.add(
+        "open"
+    );
+
+    temporaryPasswordModal.setAttribute(
+        "aria-hidden",
+        "false"
+    );
+}
+
+
+function closeTemporaryPasswordModal() {
+    temporaryPasswordValue.textContent =
+        "â€”";
+
+    temporaryPasswordModal.classList.remove(
+        "open"
+    );
+
+    temporaryPasswordModal.setAttribute(
+        "aria-hidden",
+        "true"
+    );
+}
+
+
+async function resetAdminUserPassword(
+    userId,
+    email
+) {
+    if (
+        !window.confirm(
+            `Generate a temporary password for ${email}? `
+            + "All active sessions will be revoked."
+        )
+    ) {
+        return;
+    }
+
+    const response =
+        await authFetch(
+            `${API_URL}/admin/users/${userId}/reset-password`,
+            {
+                method: "POST"
+            }
+        );
+
+    if (!response.ok) {
+        throw new Error(
+            await readApiError(
+                response,
+                "Unable to reset password."
+            )
+        );
+    }
+
+    const data =
+        await response.json();
+
+    openTemporaryPasswordModal(
+        {
+            name: data.name || "User",
+            email: data.email || email
+        },
+        data.temporary_password
+    );
+
+    await loadAdminUsers();
+}
+
+
+function openForcePasswordModal() {
+    forcePasswordError.textContent = "";
+    forceNewPassword.value = "";
+    forceConfirmPassword.value = "";
+
+    forcePasswordModal.classList.add(
+        "open"
+    );
+
+    forcePasswordModal.setAttribute(
+        "aria-hidden",
+        "false"
+    );
+
+    window.setTimeout(
+        () => forceNewPassword.focus(),
+        80
+    );
+}
+
+
+function closeForcePasswordModal() {
+    forcePasswordModal.classList.remove(
+        "open"
+    );
+
+    forcePasswordModal.setAttribute(
+        "aria-hidden",
+        "true"
+    );
+}
+
+
+async function handleForcedPasswordChange(
+    event
+) {
+    event.preventDefault();
+
+    forcePasswordError.textContent = "";
+
+    if (
+        forceNewPassword.value
+        !== forceConfirmPassword.value
+    ) {
+        forcePasswordError.textContent =
+            "Passwords do not match.";
+        return;
+    }
+
+    forcePasswordSubmitButton.disabled = true;
+
+    try {
+        const response =
+            await authFetch(
+                `${API_URL}/auth/change-password`,
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+                    body: JSON.stringify({
+                        new_password:
+                            forceNewPassword.value,
+                        confirm_password:
+                            forceConfirmPassword.value
+                    })
+                }
+            );
+
+        if (!response.ok) {
+            throw new Error(
+                await readApiError(
+                    response,
+                    "Unable to change password."
+                )
+            );
+        }
+
+        closeForcePasswordModal();
+
+        setAuthToken(null);
+        currentUser = null;
+        clearCurrentSession();
+
+        showAuthScreen("login");
+
+        authError.textContent =
+            "Password changed successfully. "
+            + "Sign in with your new password.";
+    }
+    catch (error) {
+        forcePasswordError.textContent =
+            error.message
+            || "Unable to change password.";
+    }
+    finally {
+        forcePasswordSubmitButton.disabled = false;
+    }
+}
+
+
+async function handleAdminAction(
+    button
+) {
+    const action =
+        button.dataset.adminAction;
+
+    const userId =
+        Number(
+            button.dataset.userId
+        );
+
+    button.disabled =
+        true;
+
+    try {
+        if (action === "status") {
+            await setAdminUserStatus(
+                userId,
+                button.dataset.active
+                    === "true"
+            );
+        }
+        else if (
+            action === "reset-password"
+        ) {
+            await resetAdminUserPassword(
+                userId,
+                button.dataset.userEmail
+            );
+        }
+        else if (
+            action === "revoke"
+        ) {
+            await revokeAdminUserSessions(
+                userId
+            );
+        }
+        else if (
+            action === "delete"
+        ) {
+            await deleteAdminUser(
+                userId,
+                button.dataset.userEmail
+            );
+        }
+    }
+    catch (error) {
+        window.alert(
+            error.message
+            || "Admin action failed."
+        );
+
+        await loadAdminUsers();
+    }
+    finally {
+        button.disabled =
+            false;
+    }
+}
+
+
+
+async function authFetch(
+    url,
+    options = {}
+) {
+    const headers =
+        new Headers(
+            options.headers || {}
+        );
+
+    if (authToken) {
+        headers.set(
+            "Authorization",
+            `Bearer ${authToken}`
+        );
+    }
+
+    const response =
+        await nativeFetch(
+            url,
+            {
+                ...options,
+                headers
+            }
+        );
+
+    if (
+        response.status === 401
+        && authToken
+    ) {
+        setAuthToken(
+            null
+        );
+
+        currentUser =
+            null;
+
+        clearCurrentSession();
+
+        showAuthScreen(
+            "login"
+        );
+
+        authError.textContent =
+            "Your session expired. Please sign in again.";
+    }
+
+    return response;
+}
+
+
+async function readApiError(
+    response,
+    fallback
+) {
+    try {
+        const data =
+            await response.json();
+
+        return (
+            data.detail
+            || data.message
+            || fallback
+        );
+    }
+    catch (error) {
+        return fallback;
+    }
+}
+
+
+async function handleLogin(
+    event
+) {
+    event.preventDefault();
+
+    authError.textContent =
+        "";
+
+    setAuthButtonLoading(
+        loginSubmitButton,
+        true
+    );
+
+    try {
+        const response =
+            await nativeFetch(
+                `${API_URL}/auth/login`,
+                {
+                    method:
+                        "POST",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body:
+                        JSON.stringify({
+                            email:
+                                loginEmail.value.trim(),
+                            password:
+                                loginPassword.value
+                        })
+                }
+            );
+
+        if (!response.ok) {
+            throw new Error(
+                await readApiError(
+                    response,
+                    "Unable to sign in."
+                )
+            );
+        }
+
+        const data =
+            await response.json();
+
+        setAuthToken(
+            data.access_token
+        );
+
+        currentUser =
+            data.user;
+
+        await offerCredentialSave(
+            loginEmail.value.trim(),
+            loginPassword.value,
+            data.user?.name || ""
+        );
+
+        clearCurrentSession();
+
+        renderCurrentUser();
+
+        hideAuthScreen();
+
+        loginPassword.value =
+            "";
+
+        if (
+            currentUser?.must_change_password
+        ) {
+            openForcePasswordModal();
+            return;
+        }
+
+        await initializeWorkspace();
+    }
+    catch (error) {
+        authError.textContent =
+            error.message
+            || "Unable to sign in.";
+    }
+    finally {
+        setAuthButtonLoading(
+            loginSubmitButton,
+            false
+        );
+    }
+}
+
+
+async function handleRegister(
+    event
+) {
+    event.preventDefault();
+
+    authError.textContent =
+        "";
+
+    setAuthButtonLoading(
+        registerSubmitButton,
+        true
+    );
+
+    try {
+        const response =
+            await nativeFetch(
+                `${API_URL}/auth/register`,
+                {
+                    method:
+                        "POST",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body:
+                        JSON.stringify({
+                            name:
+                                registerName.value.trim(),
+                            email:
+                                registerEmail.value.trim(),
+                            password:
+                                registerPassword.value
+                        })
+                }
+            );
+
+        if (!response.ok) {
+            throw new Error(
+                await readApiError(
+                    response,
+                    "Unable to create account."
+                )
+            );
+        }
+
+        const data =
+            await response.json();
+
+        setAuthToken(
+            data.access_token
+        );
+
+        currentUser =
+            data.user;
+
+        await offerCredentialSave(
+            registerEmail.value.trim(),
+            registerPassword.value,
+            data.user?.name || ""
+        );
+
+        clearCurrentSession();
+
+        renderCurrentUser();
+
+        hideAuthScreen();
+
+        registerPassword.value =
+            "";
+
+        await initializeWorkspace();
+    }
+    catch (error) {
+        authError.textContent =
+            error.message
+            || "Unable to create account.";
+    }
+    finally {
+        setAuthButtonLoading(
+            registerSubmitButton,
+            false
+        );
+    }
+}
+
+
+async function handleLogout() {
+    setAccountMenuOpen(
+        false
+    );
+
+    try {
+        if (authToken) {
+            await authFetch(
+                `${API_URL}/auth/logout`,
+                {
+                    method:
+                        "POST"
+                }
+            );
+        }
+    }
+    catch (error) {
+        console.warn(
+            "Logout request failed:",
+            error
+        );
+    }
+
+    setAuthToken(
+        null
+    );
+
+    currentUser =
+        null;
+
+    clearCurrentSession();
+
+    latestSources =
+        [];
+
+    chat.innerHTML =
+        "";
+
+    updateContextPanel(
+        []
+    );
+
+    showAuthScreen(
+        "login"
+    );
+}
+
+
+async function restoreAuthSession() {
+    if (!authToken) {
+        finishAuthBoot();
+
+        showAuthScreen(
+            "login"
+        );
+
+        return false;
+    }
+
+    try {
+        const response =
+            await nativeFetch(
+                `${API_URL}/auth/me`,
+                {
+                    headers: {
+                        "Authorization":
+                            `Bearer ${authToken}`
+                    }
+                }
+            );
+
+        if (!response.ok) {
+            throw new Error(
+                "Session unavailable."
+            );
+        }
+
+        const data =
+            await response.json();
+
+        currentUser =
+            data.user;
+
+        renderCurrentUser();
+
+        finishAuthBoot();
+
+        if (
+            currentUser?.must_change_password
+        ) {
+            openForcePasswordModal();
+            return false;
+        }
+
+        return true;
+    }
+    catch (error) {
+        setAuthToken(
+            null
+        );
+
+        currentUser =
+            null;
+
+        finishAuthBoot();
+
+        showAuthScreen(
+            "login"
+        );
+
+        authError.textContent =
+            "Please sign in to continue.";
+
+        return false;
+    }
+}
+
+
+function initializeAuthEvents() {
+    loginTabButton.addEventListener(
+        "click",
+        () => setAuthMode(
+            "login"
+        )
+    );
+
+    registerTabButton.addEventListener(
+        "click",
+        () => setAuthMode(
+            "register"
+        )
+    );
+
+    loginForm.addEventListener(
+        "submit",
+        handleLogin
+    );
+
+    registerForm.addEventListener(
+        "submit",
+        handleRegister
+    );
+
+    authUser.addEventListener(
+        "click",
+        event => {
+            event.stopPropagation();
+
+            toggleAccountMenu();
+        }
+    );
+
+    accountMenu.addEventListener(
+        "click",
+        event => {
+            event.stopPropagation();
+        }
+    );
+
+    adminConsoleButton.addEventListener(
+        "click",
+        openAdminModal
+    );
+
+    adminCloseButton.addEventListener(
+        "click",
+        closeAdminModal
+    );
+
+    adminModal.addEventListener(
+        "click",
+        event => {
+            if (
+                event.target
+                === adminModal
+            ) {
+                closeAdminModal();
+            }
+        }
+    );
+
+    adminUsers.addEventListener(
+        "click",
+        event => {
+            const button =
+                event.target.closest(
+                    "[data-admin-action]"
+                );
+
+            if (!button) {
+                return;
+            }
+
+            handleAdminAction(
+                button
+            );
+        }
+    );
+
+    copyTemporaryPasswordButton.addEventListener(
+        "click",
+        async () => {
+            const password =
+                temporaryPasswordValue.textContent;
+
+            try {
+                await navigator.clipboard.writeText(
+                    password
+                );
+
+                copyTemporaryPasswordButton.textContent =
+                    "Copied";
+
+                window.setTimeout(
+                    () => {
+                        copyTemporaryPasswordButton.textContent =
+                            "Copy";
+                    },
+                    1200
+                );
+            }
+            catch (error) {
+                window.prompt(
+                    "Copy temporary password:",
+                    password
+                );
+            }
+        }
+    );
+
+    temporaryPasswordDoneButton.addEventListener(
+        "click",
+        closeTemporaryPasswordModal
+    );
+
+    forcePasswordForm.addEventListener(
+        "submit",
+        handleForcedPasswordChange
+    );
+
+    logoutButton.addEventListener(
+        "click",
+        handleLogout
+    );
+
+    document.addEventListener(
+        "click",
+        event => {
+            if (
+                !authAccount.contains(
+                    event.target
+                )
+            ) {
+                setAccountMenuOpen(
+                    false
+                );
+            }
+        }
+    );
+
+    document.addEventListener(
+        "keydown",
+        event => {
+            if (
+                event.key === "Escape"
+            ) {
+                setAccountMenuOpen(
+                    false
+                );
+
+                closeAdminModal();
+            }
+        }
+    );
+
+    document
+        .querySelectorAll(
+            ".auth-password-toggle"
+        )
+        .forEach(
+            button => {
+                button.addEventListener(
+                    "click",
+                    () => {
+                        const input =
+                            document.getElementById(
+                                button.dataset.passwordTarget
+                            );
+
+                        if (!input) {
+                            return;
+                        }
+
+                        const show =
+                            input.type === "password";
+
+                        input.type =
+                            show
+                                ? "text"
+                                : "password";
+
+                        button.textContent =
+                            show
+                                ? "Hide"
+                                : "Show";
+                    }
+                );
+            }
+        );
+}
+
+
+async function initializeWorkspace() {
+    updateSessionDisplay();
+
+    await Promise.all([
+        loadChatHistory(),
+        loadDocuments()
+    ]);
+
+    await restoreCurrentChat();
+}
 
 
 const questionInput =
@@ -3067,7 +7420,7 @@ async function loadChatHistory() {
     try {
 
         const response =
-            await fetch(
+            await authFetch(
                 `${API_URL}/chats`
             );
 
@@ -3107,7 +7460,7 @@ async function loadChatHistory() {
 
 
         chatCount.textContent =
-            "—";
+            "â€”";
 
 
         chatHistory.innerHTML = `
@@ -3214,7 +7567,7 @@ function renderChatHistory(
 
 
             deleteButton.textContent =
-                "×";
+                "Ã—";
 
 
             deleteButton.title =
@@ -3266,7 +7619,7 @@ async function createNewChat() {
     try {
 
         const response =
-            await fetch(
+            await authFetch(
                 `${API_URL}/chats`,
                 {
                     method:
@@ -3336,7 +7689,7 @@ async function loadChat(
     try {
 
         const response =
-            await fetch(
+            await authFetch(
                 `${API_URL}/chats/${sessionId}`
             );
 
@@ -3463,7 +7816,7 @@ async function deleteChat(
     try {
 
         const response =
-            await fetch(
+            await authFetch(
                 `${API_URL}/chats/${sessionId}`,
                 {
                     method:
@@ -3475,7 +7828,10 @@ async function deleteChat(
         if (!response.ok) {
 
             throw new Error(
-                `Server returned ${response.status}`
+                await readApiError(
+                    response,
+                    "Unable to delete conversation."
+                )
             );
 
         }
@@ -3483,19 +7839,6 @@ async function deleteChat(
 
         const data =
             await response.json();
-
-
-        if (!data.success) {
-
-            alert(
-                data.message ||
-                "Unable to delete conversation."
-            );
-
-
-            return;
-
-        }
 
 
         if (
@@ -3551,15 +7894,32 @@ async function restoreCurrentChat() {
     try {
 
         const response =
-            await fetch(
+            await authFetch(
                 `${API_URL}/chats/${currentSessionId}`
             );
 
 
         if (!response.ok) {
 
+            if (
+                response.status === 404
+            ) {
+
+                clearCurrentSession();
+
+                clearChat();
+
+                clearContextPanel();
+
+                return;
+
+            }
+
             throw new Error(
-                `Server returned ${response.status}`
+                await readApiError(
+                    response,
+                    "Unable to restore conversation."
+                )
             );
 
         }
@@ -3567,19 +7927,6 @@ async function restoreCurrentChat() {
 
         const data =
             await response.json();
-
-
-        if (
-            data.success === false
-        ) {
-
-            clearCurrentSession();
-
-            clearChat();
-
-            return;
-
-        }
 
 
         currentSessionId =
@@ -3670,7 +8017,7 @@ async function loadDocuments() {
     try {
 
         const response =
-            await fetch(
+            await authFetch(
                 `${API_URL}/documents`
             );
 
@@ -3710,7 +8057,7 @@ async function loadDocuments() {
 
 
         documentCount.textContent =
-            "—";
+            "â€”";
 
 
         documentsList.innerHTML = `
@@ -3774,12 +8121,12 @@ function renderDocuments(
 
         documentsList.innerHTML = `
             <div class="knowledge-state">
-                <div class="knowledge-state-icon">PDF</div>
+                <div class="knowledge-state-icon">FILE</div>
                 <div class="knowledge-state-title">
                     No documents yet
                 </div>
                 <div class="knowledge-state-text">
-                    Add a PDF to start building your knowledge base.
+                    Add a PDF, DOCX, TXT, or Markdown file to start building your knowledge base.
                 </div>
             </div>
         `;
@@ -3814,7 +8161,10 @@ function renderDocuments(
 
 
             icon.textContent =
-                "PDF";
+                getFileTypeLabel(
+                    documentItem.filename,
+                    documentItem.file_type
+                );
 
 
             const info =
@@ -3903,7 +8253,7 @@ function renderDocuments(
 
 
             deleteButton.textContent =
-                "×";
+                "Ã—";
 
 
             deleteButton.title =
@@ -3976,7 +8326,7 @@ async function deleteDocument(
     try {
 
         const response =
-            await fetch(
+            await authFetch(
                 `${API_URL}/documents/${documentId}`,
                 {
                     method:
@@ -3988,7 +8338,10 @@ async function deleteDocument(
         if (!response.ok) {
 
             throw new Error(
-                `Server returned ${response.status}`
+                await readApiError(
+                    response,
+                    "Unable to delete document."
+                )
             );
 
         }
@@ -3996,19 +8349,6 @@ async function deleteDocument(
 
         const data =
             await response.json();
-
-
-        if (!data.success) {
-
-            alert(
-                data.message ||
-                "Unable to delete document."
-            );
-
-
-            return;
-
-        }
 
 
         await loadDocuments();
@@ -4110,7 +8450,7 @@ function clearChat() {
             </h2>
 
             <p>
-                Add a PDF from the Knowledge Base panel,
+                Add a supported file from the Knowledge Base panel,
                 then ask questions about its contents.
                 KnowledgeHub will answer using retrieved
                 document context.
@@ -4653,6 +8993,52 @@ function renderMarkdown(
    ========================================= */
 
 
+
+function selectAssistantEvidence(
+    message
+) {
+    if (!message) {
+        return;
+    }
+
+    document
+        .querySelectorAll(
+            ".assistant-message.context-selected"
+        )
+        .forEach(
+            item =>
+                item.classList.remove(
+                    "context-selected"
+                )
+        );
+
+    message.classList.add(
+        "context-selected"
+    );
+
+    let sources = [];
+
+    try {
+        sources = JSON.parse(
+            message.dataset.sources
+            || "[]"
+        );
+    }
+    catch (error) {
+        sources = [];
+    }
+
+    latestSources =
+        Array.isArray(sources)
+            ? sources
+            : [];
+
+    updateContextPanel(
+        latestSources
+    );
+}
+
+
 function addAssistantMessage(
     data
 ) {
@@ -4745,7 +9131,9 @@ function addAssistantMessage(
 
         copyAnswerButton.addEventListener(
             "click",
-            () => {
+            event => {
+
+                event.stopPropagation();
 
                 copyTextWithFeedback(
                     data.answer || "",
@@ -4760,12 +9148,38 @@ function addAssistantMessage(
     }
 
 
-    latestSources =
-        rawSources;
+    const assistantBubble =
+        message.querySelector(
+            ".assistant-bubble"
+        );
 
 
-    updateContextPanel(
-        rawSources
+    if (assistantBubble) {
+
+        assistantBubble.addEventListener(
+            "click",
+            event => {
+
+                if (
+                    event.target.closest(
+                        "button, a, summary, details"
+                    )
+                ) {
+                    return;
+                }
+
+                selectAssistantEvidence(
+                    message
+                );
+
+            }
+        );
+
+    }
+
+
+    selectAssistantEvidence(
+        message
     );
 
 
@@ -4800,10 +9214,21 @@ function getUniqueSources(
                 source.filename ||
                 "Unknown document";
 
+            const pageKey =
+                source.page_number
+                ?? "";
+
+            const sectionKey =
+                source.section
+                ?? "";
+
+            const sourceKey =
+                `${filename}|${pageKey}|${sectionKey}`;
+
 
             if (
                 seen.has(
-                    filename
+                    sourceKey
                 )
             ) {
 
@@ -4813,7 +9238,7 @@ function getUniqueSources(
 
 
             seen.add(
-                filename
+                sourceKey
             );
 
 
@@ -4832,6 +9257,113 @@ function getUniqueSources(
 
     return unique;
 
+}
+
+
+function getSourceLocationParts(
+    source
+) {
+    const parts = [];
+
+    if (
+        source.page_number !== undefined
+        && source.page_number !== null
+    ) {
+        parts.push(
+            `Page ${source.page_number}`
+        );
+    }
+
+    if (
+        source.section
+        && String(
+            source.section
+        ).trim()
+    ) {
+        parts.push(
+            String(
+                source.section
+            ).trim()
+        );
+    }
+
+    return parts;
+}
+
+
+
+function getVisualSourceLabel(
+    source
+) {
+    const metadata =
+        source.metadata || {};
+
+    if (
+        metadata.source_type
+        !== "visual"
+    ) {
+        return "";
+    }
+
+    const rawType =
+        metadata.visual_type
+        || "visual";
+
+    return rawType
+        .replaceAll(
+            "_",
+            " "
+        )
+        .replace(
+            /\b\w/g,
+            character =>
+                character
+                .toUpperCase()
+        );
+}
+
+
+function renderVisualSourceBadge(
+    source
+) {
+    const label =
+        getVisualSourceLabel(
+            source
+        );
+
+    if (!label) {
+        return "";
+    }
+
+    return `
+        <div class="visual-source-badge">
+            ${escapeHtml(label)}
+        </div>
+    `;
+}
+
+
+function renderSourceLocation(
+    source
+) {
+    const parts =
+        getSourceLocationParts(
+            source
+        );
+
+    if (!parts.length) {
+        return "";
+    }
+
+    return `
+        <div class="context-document-note">
+            ${parts.map(
+                part => escapeHtml(
+                    part
+                )
+            ).join(" Â· ")}
+        </div>
+    `;
 }
 
 
@@ -4869,7 +9401,7 @@ function renderDeveloperDetails(
     return `
         <div class="developer-details">
             Chunk <code>${chunk}</code>
-            &nbsp;•&nbsp;
+            &nbsp;â€¢&nbsp;
             Relevance <code>${relevance}</code>
         </div>
     `;
@@ -4913,13 +9445,21 @@ function renderSourcesHtml(
                         <div class="source">
 
                             <span class="source-icon">
-                                ▣
+                                â–£
                             </span>
 
                             <span>
                                 ${escapeHtml(
                                     source.filename ||
                                     "Unknown document"
+                                )}
+
+                                ${renderSourceLocation(
+                                    source
+                                )}
+
+                                ${renderVisualSourceBadge(
+                                    source
                                 )}
 
                                 ${renderDeveloperDetails(
@@ -4949,7 +9489,7 @@ function buildEvidencePreview(content) {
         return normalized;
     }
 
-    return normalized.slice(0, 280).trimEnd() + "…";
+    return normalized.slice(0, 280).trimEnd() + "â€¦";
 
 }
 
@@ -4970,7 +9510,7 @@ async function fetchSourceEvidence(source) {
     }
 
 
-    const response = await fetch(
+    const response = await authFetch(
         `${API_URL}/documents/${source.document_id}/chunks/${source.chunk_index}`
     );
 
@@ -5032,8 +9572,12 @@ async function updateContextPanel(
         latestSources;
 
 
-    contextContent.innerHTML =
-        displaySources.map(
+    contextContent.innerHTML = `
+        <div class="context-selection-hint">
+            Showing evidence for the selected answer.
+            Click another answer to inspect its evidence.
+        </div>
+    ` + displaySources.map(
             (source, index) => `
                 <div class="context-card ${
                     developerModeEnabled
@@ -5052,7 +9596,12 @@ async function updateContextPanel(
                     <div class="context-document">
 
                         <div class="context-document-icon">
-                            PDF
+                            ${escapeHtml(
+                                getFileTypeLabel(
+                                    source.filename,
+                                    source.file_type
+                                )
+                            )}
                         </div>
 
                         <div>
@@ -5063,6 +9612,14 @@ async function updateContextPanel(
                                     "Unknown document"
                                 )}
                             </div>
+
+                            ${renderSourceLocation(
+                                source
+                            )}
+
+                            ${renderVisualSourceBadge(
+                                source
+                            )}
 
                             <div class="context-document-note">
                                 Retrieved passage used for grounding
@@ -5081,7 +9638,7 @@ async function updateContextPanel(
                         id="contextEvidence${index}"
                     >
                         <div class="context-evidence-loading">
-                            Loading supporting passage…
+                            Loading supporting passageâ€¦
                         </div>
                     </div>
 
@@ -5218,8 +9775,13 @@ function clearContextPanel() {
                 K
             </div>
 
-            Ask a question to see which
-            documents support the answer.
+            This answer has no supporting evidence
+            to display.
+
+            <div class="context-selection-hint">
+                Click any earlier supported answer to inspect
+                its Sources &amp; Context here.
+            </div>
 
         </div>
     `;
@@ -5330,8 +9892,8 @@ function applyTheme(
 
     themeToggleIcon.textContent =
         darkMode
-            ? "☀"
-            : "☾";
+            ? "â˜€"
+            : "â˜¾";
 
 
     themeToggleLabel.textContent =
@@ -5507,7 +10069,7 @@ async function askQuestion() {
         try {
 
             const response =
-                await fetch(
+                await authFetch(
                     `${API_URL}/chats`,
                     {
                         method:
@@ -5585,7 +10147,7 @@ async function askQuestion() {
     try {
 
         const response =
-            await fetch(
+            await authFetch(
                 `${API_URL}/ask`,
                 {
                     method:
@@ -5618,7 +10180,10 @@ async function askQuestion() {
         ) {
 
             throw new Error(
-                `Server returned ${response.status}`
+                await readApiError(
+                    response,
+                    "Unable to answer the question."
+                )
             );
 
         }
@@ -5662,8 +10227,8 @@ async function askQuestion() {
         addAssistantMessage({
 
             answer:
-                "Unable to connect to KnowledgeHub backend. " +
-                "Please make sure the FastAPI server is running.",
+                error.message
+                || "Unable to answer the question.",
 
             sources: []
 
@@ -5695,186 +10260,302 @@ async function askQuestion() {
    ========================================= */
 
 
-async function uploadDocument() {
+const MAX_BATCH_FILES = 10;
 
-    const file =
-        fileInput.files[0];
-
-
-    if (
-        !file
-    ) {
-
-        uploadStatus.textContent =
-            "Select a PDF first.";
+const SUPPORTED_UPLOAD_EXTENSIONS = [
+    ".pdf",
+    ".docx",
+    ".txt",
+    ".md",
+    ".markdown"
+];
 
 
-        uploadStatus.className =
-            "upload-error";
+function isSupportedUploadFile(
+    file
+) {
+    const lowerFilename =
+        file.name.toLowerCase();
 
-
-        return;
-
-    }
-
-
-    if (
-        !file.name
-            .toLowerCase()
-            .endsWith(
-                ".pdf"
+    return SUPPORTED_UPLOAD_EXTENSIONS.some(
+        extension =>
+            lowerFilename.endsWith(
+                extension
             )
-    ) {
-
-        uploadStatus.textContent =
-            "Only PDF files are supported.";
+    );
+}
 
 
-        uploadStatus.className =
-            "upload-error";
-
-
-        return;
-
-    }
-
-
+async function uploadSingleDocument(
+    file
+) {
     const formData =
         new FormData();
-
 
     formData.append(
         "file",
         file
     );
 
+    const response =
+        await authFetch(
+            `${API_URL}/documents/upload`,
+            {
+                method: "POST",
+                body: formData
+            }
+        );
 
-    uploadButton.disabled =
-        true;
+    if (!response.ok) {
+        let detail =
+            `Server returned ${response.status}`;
+
+        try {
+            const errorData =
+                await response.json();
+
+            detail =
+                errorData.detail
+                || errorData.message
+                || detail;
+        }
+        catch (error) {
+            // Keep the HTTP fallback message.
+        }
+
+        throw new Error(
+            detail
+        );
+    }
+
+    const data =
+        await response.json();
+
+    if (!data.success) {
+        throw new Error(
+            data.message
+            || "Document ingestion failed."
+        );
+    }
+
+    return data;
+}
 
 
-    selectFileButton.disabled =
-        true;
-
-
-    uploadButton.textContent =
-        "Working";
-
-
+function renderBatchProgress(
+    completed,
+    total,
+    currentFile
+) {
     uploadStatus.innerHTML = `
         <div class="upload-progress">
             <span class="knowledge-spinner"></span>
             <span>
-                Uploading and indexing ${escapeHtml(file.name)}...
+                Processing ${completed + 1} of ${total}:
+                ${escapeHtml(currentFile.name)}
             </span>
         </div>
     `;
 
-
     uploadStatus.className =
         "";
+}
 
 
-    try {
+function renderBatchSummary(
+    successful,
+    failed
+) {
+    const total =
+        successful.length
+        + failed.length;
 
-        const response =
-            await fetch(
-                `${API_URL}/documents/upload`,
-                {
-                    method:
-                        "POST",
-
-                    body:
-                        formData
-                }
-            );
-
-
-        if (
-            !response.ok
-        ) {
-
-            throw new Error(
-                `Server returned ${response.status}`
-            );
-
-        }
-
-
-        const data =
-            await response.json();
-
-
-        if (
-            data.success
-        ) {
-
-            uploadStatus.textContent =
-                `${data.filename} added to the knowledge base.`;
-
-
-            uploadStatus.className =
-                "upload-success";
-
-
-            fileInput.value =
-                "";
-
-
-            selectFileButton.textContent =
-                "+ Add PDF";
-
-
-            selectFileButton.title =
-                "Choose PDF document";
-
-
-            await loadDocuments();
-
-        }
-        else {
-
-            uploadStatus.textContent =
-                data.message ||
-                "Document ingestion failed.";
-
-
-            uploadStatus.className =
-                "upload-error";
-
-        }
-
-    }
-    catch (
-        error
+    if (
+        successful.length
+        === total
     ) {
-
         uploadStatus.textContent =
-            "Unable to connect to KnowledgeHub backend.";
+            total === 1
+                ? `${successful[0]} added to the knowledge base.`
+                : `${total} documents added to the knowledge base.`;
 
+        uploadStatus.className =
+            "upload-success";
+
+        return;
+    }
+
+    if (!successful.length) {
+        uploadStatus.textContent =
+            `Upload failed for all ${total} selected documents.`;
 
         uploadStatus.className =
             "upload-error";
 
+        return;
+    }
+
+    uploadStatus.textContent =
+        `${successful.length} of ${total} documents uploaded successfully. `
+        + `${failed.length} failed.`;
+
+    uploadStatus.className =
+        "upload-error";
+}
+
+
+async function uploadDocument() {
+
+    const files =
+        Array.from(
+            fileInput.files
+        );
+
+    if (!files.length) {
+        uploadStatus.textContent =
+            "Select one or more supported files first.";
+
+        uploadStatus.className =
+            "upload-error";
+
+        return;
+    }
+
+    if (
+        files.length
+        > MAX_BATCH_FILES
+    ) {
+        uploadStatus.textContent =
+            `You can upload up to ${MAX_BATCH_FILES} documents at a time.`;
+
+        uploadStatus.className =
+            "upload-error";
+
+        return;
+    }
+
+    const unsupported =
+        files.filter(
+            file =>
+                !isSupportedUploadFile(
+                    file
+                )
+        );
+
+    if (unsupported.length) {
+        uploadStatus.textContent =
+            "Supported file types: PDF, DOCX, TXT, and Markdown.";
+
+        uploadStatus.className =
+            "upload-error";
+
+        return;
+    }
+
+    uploadButton.disabled =
+        true;
+
+    selectFileButton.disabled =
+        true;
+
+    uploadButton.textContent =
+        files.length === 1
+            ? "Working"
+            : `Uploading 0/${files.length}`;
+
+    const successful = [];
+    const failed = [];
+
+    try {
+        for (
+            let index = 0;
+            index < files.length;
+            index += 1
+        ) {
+            const file =
+                files[index];
+
+            renderBatchProgress(
+                index,
+                files.length,
+                file
+            );
+
+            uploadButton.textContent =
+                files.length === 1
+                    ? "Working"
+                    : `Uploading ${index + 1}/${files.length}`;
+
+            try {
+                const data =
+                    await uploadSingleDocument(
+                        file
+                    );
+
+                successful.push(
+                    data.filename
+                    || file.name
+                );
+            }
+            catch (error) {
+                failed.push({
+                    filename:
+                        file.name,
+                    message:
+                        error.message
+                        || "Upload failed."
+                });
+
+                console.error(
+                    `Upload failed for ${file.name}:`,
+                    error
+                );
+            }
+        }
+
+        fileInput.value =
+            "";
+
+        selectFileButton.textContent =
+            "+ Add File";
+
+        selectFileButton.title =
+            "Choose up to 10 supported documents";
+
+        renderBatchSummary(
+            successful,
+            failed
+        );
+
+        await loadDocuments();
+
+        if (failed.length) {
+            console.warn(
+                "KnowledgeHub batch upload failures:",
+                failed
+            );
+        }
+    }
+    catch (error) {
+        uploadStatus.textContent =
+            "Unable to complete the document upload batch.";
+
+        uploadStatus.className =
+            "upload-error";
 
         console.error(
             error
         );
-
     }
     finally {
-
         uploadButton.disabled =
             false;
-
 
         selectFileButton.disabled =
             false;
 
-
         uploadButton.textContent =
             "Upload";
-
     }
 
 }
@@ -5894,38 +10575,95 @@ function openFilePicker() {
 
 function handleSelectedFile() {
 
-    const file =
-        fileInput.files[0];
+    const files =
+        Array.from(
+            fileInput.files
+        );
 
-
-    if (
-        !file
-    ) {
+    if (!files.length) {
 
         selectFileButton.textContent =
-            "+ Add PDF";
-
+            "+ Add File";
 
         selectFileButton.title =
-            "Choose PDF document";
+            "Choose up to 10 supported documents";
 
+        uploadStatus.textContent =
+            "";
+
+        uploadStatus.className =
+            "";
 
         return;
-
     }
 
+    if (
+        files.length
+        > MAX_BATCH_FILES
+    ) {
+        selectFileButton.textContent =
+            `${files.length} files selected`;
 
-    selectFileButton.textContent =
-        file.name;
+        selectFileButton.title =
+            `${files.length} files selected`;
 
+        uploadStatus.textContent =
+            `Maximum ${MAX_BATCH_FILES} files per batch.`;
 
-    selectFileButton.title =
-        file.name;
+        uploadStatus.className =
+            "upload-error";
 
+        return;
+    }
 
-    uploadStatus.textContent =
-        "Ready to upload.";
+    const unsupported =
+        files.filter(
+            file =>
+                !isSupportedUploadFile(
+                    file
+                )
+        );
 
+    if (unsupported.length) {
+        selectFileButton.textContent =
+            `${files.length} files selected`;
+
+        selectFileButton.title =
+            files.map(
+                file => file.name
+            ).join(", ");
+
+        uploadStatus.textContent =
+            "One or more selected files are unsupported.";
+
+        uploadStatus.className =
+            "upload-error";
+
+        return;
+    }
+
+    if (files.length === 1) {
+        selectFileButton.textContent =
+            files[0].name;
+
+        selectFileButton.title =
+            files[0].name;
+
+        uploadStatus.textContent =
+            "1 document ready to upload.";
+    }
+    else {
+        selectFileButton.textContent =
+            `${files.length} files selected`;
+
+        selectFileButton.title =
+            files.map(
+                file => file.name
+            ).join(", ");
+
+        uploadStatus.textContent =
+            `${files.length} documents ready to upload.`;
+    }
 
     uploadStatus.className =
         "";
@@ -6138,6 +10876,67 @@ function scrollToBottom() {
 }
 
 
+function getFileTypeLabel(
+    filename,
+    backendFileType = ""
+) {
+
+    if (backendFileType) {
+
+        const normalizedType =
+            String(backendFileType)
+                .trim();
+
+
+        if (
+            normalizedType
+                .toLowerCase() ===
+            "markdown"
+        ) {
+
+            return "MD";
+
+        }
+
+
+        return normalizedType
+            .toUpperCase();
+
+    }
+
+
+    const lowerFilename =
+        String(filename || "")
+            .toLowerCase();
+
+
+    if (lowerFilename.endsWith(".pdf")) {
+        return "PDF";
+    }
+
+
+    if (lowerFilename.endsWith(".docx")) {
+        return "DOCX";
+    }
+
+
+    if (lowerFilename.endsWith(".txt")) {
+        return "TXT";
+    }
+
+
+    if (
+        lowerFilename.endsWith(".md") ||
+        lowerFilename.endsWith(".markdown")
+    ) {
+        return "MD";
+    }
+
+
+    return "FILE";
+}
+
+
 function escapeHtml(
     text
 ) {
@@ -6229,7 +11028,7 @@ questionInput.addEventListener(
 
 
 /* =========================================
-   INITIALIZE V2
+   INITIALIZE V3
    ========================================= */
 
 
@@ -6241,16 +11040,17 @@ applyTheme(
 applyDeveloperMode();
 
 
-updateSessionDisplay();
+initializeAuthEvents();
 
 
-loadChatHistory();
+(async function initializeKnowledgeHub() {
+    const authenticated =
+        await restoreAuthSession();
 
-
-loadDocuments();
-
-
-restoreCurrentChat();
+    if (authenticated) {
+        await initializeWorkspace();
+    }
+})();
 
 
 </script>
