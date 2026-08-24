@@ -1,17 +1,7 @@
-from rag import generate_answer
+import rag
 
 
-REJECTION_MESSAGES = {
-    "I couldn't find relevant information in the knowledge base.",
-    "I couldn't find that information in the provided documents."
-}
-
-
-TEST_CASES = [
-    # ========================================================
-    # ANSWERABLE
-    # ========================================================
-
+TEST_QUESTIONS = [
     {
         "question": "What is Continuous Integration?",
         "expected": "ANSWER"
@@ -30,6 +20,22 @@ TEST_CASES = [
             "Delivery and Continuous Deployment?"
         ),
         "expected": "ANSWER"
+    },
+    {
+        "question": "Who is the CEO of Microsoft?",
+        "expected": "REJECT"
+    },
+    {
+        "question": "What is the capital of France?",
+        "expected": "REJECT"
+    },
+    {
+        "question": "Who won the FIFA World Cup?",
+        "expected": "REJECT"
+    },
+    {
+        "question": "How do I make biryani?",
+        "expected": "REJECT"
     },
     {
         "question": (
@@ -58,27 +64,6 @@ TEST_CASES = [
         ),
         "expected": "ANSWER"
     },
-
-    # ========================================================
-    # SHOULD BE REJECTED
-    # ========================================================
-
-    {
-        "question": "Who is the CEO of Microsoft?",
-        "expected": "REJECT"
-    },
-    {
-        "question": "What is the capital of France?",
-        "expected": "REJECT"
-    },
-    {
-        "question": "Who won the FIFA World Cup?",
-        "expected": "REJECT"
-    },
-    {
-        "question": "How do I make biryani?",
-        "expected": "REJECT"
-    },
     {
         "question": (
             "What database does this application use?"
@@ -103,238 +88,149 @@ TEST_CASES = [
             "on AWS or Azure?"
         ),
         "expected": "REJECT"
+    },
+    {
+        "question": "What is Pipeline as Code?",
+        "expected": "ANSWER"
     }
 ]
 
 
-def classify_result(result):
+def predicted_label(answer: str) -> str:
+    normalized = (
+        answer or ""
+    ).strip()
 
-    answer = (
-        result.get(
-            "answer",
-            ""
-        )
-        .strip()
-    )
-
-    if answer in REJECTION_MESSAGES:
-
+    if normalized in {
+        rag.REJECTION_ANSWER,
+        rag.NO_RESULTS_ANSWER
+    }:
         return "REJECT"
 
     return "ANSWER"
 
 
 def evaluate_rag():
+    rag.RAG_DEBUG = False
 
-    total = len(TEST_CASES)
+    print()
+    print("=" * 80)
+    print(
+        "KNOWLEDGEHUB AI V3 - END-TO-END RAG EVALUATION"
+    )
+    print("=" * 80)
+    print()
+    print(
+        f"Total evaluation questions: "
+        f"{len(TEST_QUESTIONS)}"
+    )
+    print(
+        "Candidate boundary: "
+        f"hybrid >= "
+        f"{rag.HYBRID_RELEVANCE_THRESHOLD:.2f}"
+    )
+    print()
 
     passed = 0
-
     failed = 0
 
-
-    print()
-
-    print("=" * 90)
-
-    print(
-        "KNOWLEDGEHUB AI - END-TO-END RAG EVALUATION"
-    )
-
-    print("=" * 90)
-
-    print()
-
-    print(
-        f"Total test cases: {total}"
-    )
-
-    print()
-
-
     for index, test in enumerate(
-        TEST_CASES,
+        TEST_QUESTIONS,
         start=1
     ):
-
         question = test["question"]
-
         expected = test["expected"]
 
-
-        print("-" * 90)
-
+        print("-" * 80)
         print(
-            f"TEST #{index}"
+            f"{index}. QUESTION: {question}"
         )
-
-        print(
-            f"QUESTION: {question}"
-        )
-
         print(
             f"EXPECTED: {expected}"
         )
 
-        print("-" * 90)
-
-
         try:
-
-            result = generate_answer(
+            result = rag.generate_answer(
                 question
             )
 
-        except Exception as error:
+            answer = result.get(
+                "answer",
+                ""
+            )
 
+            predicted = predicted_label(
+                answer
+            )
+
+            print(
+                f"PREDICTED: {predicted}"
+            )
+            print(
+                f"ANSWER: {answer}"
+            )
+
+            sources = result.get(
+                "sources",
+                []
+            )
+
+            if sources:
+                source_text = ", ".join(
+                    (
+                        f"{source['filename']}"
+                        f" [chunk "
+                        f"{source['chunk_index']}, "
+                        f"{source['relevance']:.3f}]"
+                    )
+                    for source in sources
+                )
+                print(
+                    f"SOURCES: {source_text}"
+                )
+            else:
+                print(
+                    "SOURCES: none"
+                )
+
+            if predicted == expected:
+                print(
+                    "EVALUATION: PASS"
+                )
+                passed += 1
+            else:
+                print(
+                    "EVALUATION: FAIL"
+                )
+                failed += 1
+
+        except Exception as exc:
+            print(
+                f"ERROR: "
+                f"{type(exc).__name__}: "
+                f"{exc}"
+            )
+            print(
+                "EVALUATION: FAIL"
+            )
             failed += 1
 
-            print()
-
-            print(
-                "RESULT: ERROR"
-            )
-
-            print(
-                f"ERROR: {error}"
-            )
-
-            print()
-
-            continue
-
-
-        actual = classify_result(
-            result
-        )
-
-
-        answer = result.get(
-            "answer",
-            ""
-        )
-
-
-        sources = result.get(
-            "sources",
-            []
-        )
-
-
-        is_pass = (
-            actual == expected
-        )
-
-
-        if is_pass:
-
-            passed += 1
-
-            status = "PASS"
-
-        else:
-
-            failed += 1
-
-            status = "FAIL"
-
-
         print()
 
-        print(
-            f"ACTUAL: {actual}"
-        )
+    total = len(TEST_QUESTIONS)
 
-        print(
-            f"STATUS: {status}"
-        )
-
-        print()
-
-        print(
-            "ANSWER:"
-        )
-
-        print(
-            answer
-        )
-
-
-        print()
-
-        print(
-            f"SOURCES RETURNED: {len(sources)}"
-        )
-
-
-        for source_index, source in enumerate(
-            sources,
-            start=1
-        ):
-
-            print(
-                f"  Source #{source_index}: "
-                f"{source.get('filename')} | "
-                f"Chunk {source.get('chunk_index')} | "
-                f"Relevance {source.get('relevance')}"
-            )
-
-
-        print()
-
-
-    print("=" * 90)
-
+    print("=" * 80)
+    print("EVALUATION SUMMARY")
+    print("=" * 80)
+    print(f"Total:  {total}")
+    print(f"Passed: {passed}")
+    print(f"Failed: {failed}")
     print(
-        "EVALUATION SUMMARY"
+        f"Accuracy: "
+        f"{(passed / total) * 100:.1f}%"
     )
-
-    print("=" * 90)
-
-    print()
-
-    print(
-        f"Passed: {passed}"
-    )
-
-    print(
-        f"Failed: {failed}"
-    )
-
-    print(
-        f"Total:  {total}"
-    )
-
-
-    accuracy = (
-        passed / total
-    ) * 100
-
-
-    print(
-        f"Outcome accuracy: {accuracy:.2f}%"
-    )
-
-    print()
-
-
-    if failed == 0:
-
-        print(
-            "END-TO-END RAG EVALUATION PASSED."
-        )
-
-    else:
-
-        print(
-            "END-TO-END RAG EVALUATION "
-            "HAS FAILURES THAT REQUIRE REVIEW."
-        )
-
-
-    print()
+    print("=" * 80)
 
 
 if __name__ == "__main__":
-
     evaluate_rag()
