@@ -17,7 +17,7 @@
         document.documentElement.classList.add("auth-booting");
     </script>
 
-    <title>KnowledgeHub AI V3 â€” Aurora Glass</title>
+    <title>KnowledgeHub AI V3 — Aurora Glass</title>
 
     <script>
         // Apply the saved theme before the page paints to avoid a flash.
@@ -4440,7 +4440,7 @@
         </div>
 
         <div class="auth-boot-text">
-            Securing your KnowledgeHub sessionâ€¦
+            Securing your KnowledgeHub session…
         </div>
     </div>
 </div>
@@ -4485,7 +4485,7 @@
                 type="button"
                 aria-label="Close admin console"
             >
-                Ã—
+                ×
             </button>
         </header>
 
@@ -4499,7 +4499,7 @@
                     id="adminTotalUsers"
                     class="admin-summary-value"
                 >
-                    â€”
+                    —
                 </div>
             </div>
 
@@ -4512,7 +4512,7 @@
                     id="adminActiveUsers"
                     class="admin-summary-value"
                 >
-                    â€”
+                    —
                 </div>
             </div>
 
@@ -4525,7 +4525,7 @@
                     id="adminDisabledUsers"
                     class="admin-summary-value"
                 >
-                    â€”
+                    —
                 </div>
             </div>
         </section>
@@ -4536,7 +4536,7 @@
                 class="admin-users"
             >
                 <div class="admin-loading">
-                    Loading usersâ€¦
+                    Loading users…
                 </div>
             </div>
         </div>
@@ -4560,7 +4560,7 @@
                 id="temporaryPasswordValue"
                 class="temporary-password-value"
             >
-                â€”
+                —
             </div>
 
             <button
@@ -4704,21 +4704,21 @@
 
             <div class="auth-feature-row">
                 <div class="auth-feature">
-                    <div class="auth-feature-icon">â—ˆ</div>
+                    <div class="auth-feature-icon">◈</div>
                     <div class="auth-feature-label">
                         Private documents
                     </div>
                 </div>
 
                 <div class="auth-feature">
-                    <div class="auth-feature-icon">â—Ž</div>
+                    <div class="auth-feature-icon">◎</div>
                     <div class="auth-feature-label">
                         Grounded answers
                     </div>
                 </div>
 
                 <div class="auth-feature">
-                    <div class="auth-feature-icon">âœ¦</div>
+                    <div class="auth-feature-icon">✦</div>
                     <div class="auth-feature-label">
                         Isolated sessions
                     </div>
@@ -4766,7 +4766,7 @@
                 id="loginForm"
                 class="auth-form active"
                 method="post"
-                action="http://127.0.0.1:8000/auth/login"
+                action="/auth/login"
                 autocomplete="on"
             >
                 <div class="auth-field">
@@ -4822,7 +4822,7 @@
                     <span class="auth-submit-text">
                         Enter KnowledgeHub
                     </span>
-                    <span>â†’</span>
+                    <span>→</span>
                 </button>
             </form>
 
@@ -4830,7 +4830,7 @@
                 id="registerForm"
                 class="auth-form"
                 method="post"
-                action="http://127.0.0.1:8000/auth/register"
+                action="/auth/register"
                 autocomplete="on"
             >
                 <div class="auth-field">
@@ -4905,7 +4905,7 @@
                     <span class="auth-submit-text">
                         Create my workspace
                     </span>
-                    <span>â†’</span>
+                    <span>→</span>
                 </button>
             </form>
 
@@ -4915,7 +4915,7 @@
             >
                 <span class="knowledge-spinner"></span>
                 <span>
-                    Restoring your secure sessionâ€¦
+                    Restoring your secure session…
                 </span>
             </div>
 
@@ -5012,7 +5012,7 @@
                     class="tiny-button"
                     title="Refresh documents"
                 >
-                    â†»
+                    ↻
                 </button>
 
             </div>
@@ -5115,7 +5115,7 @@
                             class="auth-user-chevron"
                             aria-hidden="true"
                         >
-                            â–¾
+                            ▾
                         </span>
                     </button>
 
@@ -5158,7 +5158,7 @@
 
                         <div class="account-menu-note">
                             <div class="account-menu-note-icon">
-                                â—ˆ
+                                ◈
                             </div>
 
                             <div>
@@ -5199,7 +5199,7 @@
                             role="menuitem"
                         >
                             <span class="account-menu-action-icon">
-                                â†—
+                                ↗
                             </span>
 
                             <span>
@@ -5223,7 +5223,7 @@
                     type="button"
                     title="Switch theme"
                 >
-                    <span id="themeToggleIcon">â˜¾</span>
+                    <span id="themeToggleIcon">☾</span>
                     <span
                         id="themeToggleLabel"
                         class="header-tool-label"
@@ -5290,7 +5290,7 @@
                         id="documentCount"
                         class="stat-value"
                     >
-                        â€”
+                        —
                     </div>
 
                     <div class="stat-note">
@@ -5310,7 +5310,7 @@
                         id="chatCount"
                         class="stat-value"
                     >
-                        â€”
+                        —
                     </div>
 
                     <div class="stat-note">
@@ -5330,7 +5330,7 @@
                         id="sessionDisplay"
                         class="stat-value"
                     >
-                        â€”
+                        —
                     </div>
 
                     <div class="stat-note">
@@ -5472,7 +5472,7 @@
             id="askButton"
             title="Ask KnowledgeHub"
         >
-            â†‘
+            ↑
         </button>
 
     </div>
@@ -5483,8 +5483,7 @@
 <script>
 
 
-const API_URL =
-    "http://127.0.0.1:8000";
+const API_URL = window.location.origin;
 
 
 const AUTH_TOKEN_KEY =
@@ -5977,7 +5976,7 @@ function renderCurrentUser() {
 
     authUser.title =
         email
-            ? `${name} Â· ${email}`
+            ? `${name} · ${email}`
             : name;
 
     const isAdmin =
@@ -6122,7 +6121,7 @@ function renderAdminUsers(
 
                 const currentLabel =
                     user.is_current_user
-                        ? " Â· You"
+                        ? " · You"
                         : "";
 
                 const disableLabel =
@@ -6167,7 +6166,7 @@ function renderAdminUsers(
                         </span>
 
                         <div class="admin-user-stats">
-                            ${user.document_count} docs Â·
+                            ${user.document_count} docs ·
                             ${user.chat_count} chats
                             <br>
                             ${user.active_session_count} active session(s)
@@ -6231,7 +6230,7 @@ function renderAdminUsers(
 async function loadAdminUsers() {
     adminUsers.innerHTML =
         '<div class="admin-loading">'
-        + 'Loading usersâ€¦'
+        + 'Loading users…'
         + '</div>';
 
     try {
@@ -6386,7 +6385,7 @@ function openTemporaryPasswordModal(
     password
 ) {
     temporaryPasswordUser.textContent =
-        `${user.name} Â· ${user.email}`;
+        `${user.name} · ${user.email}`;
 
     temporaryPasswordValue.textContent =
         password;
@@ -6404,7 +6403,7 @@ function openTemporaryPasswordModal(
 
 function closeTemporaryPasswordModal() {
     temporaryPasswordValue.textContent =
-        "â€”";
+        "—";
 
     temporaryPasswordModal.classList.remove(
         "open"
@@ -7460,7 +7459,7 @@ async function loadChatHistory() {
 
 
         chatCount.textContent =
-            "â€”";
+            "—";
 
 
         chatHistory.innerHTML = `
@@ -7567,7 +7566,7 @@ function renderChatHistory(
 
 
             deleteButton.textContent =
-                "Ã—";
+                "×";
 
 
             deleteButton.title =
@@ -8057,7 +8056,7 @@ async function loadDocuments() {
 
 
         documentCount.textContent =
-            "â€”";
+            "—";
 
 
         documentsList.innerHTML = `
@@ -8253,7 +8252,7 @@ function renderDocuments(
 
 
             deleteButton.textContent =
-                "Ã—";
+                "×";
 
 
             deleteButton.title =
@@ -9361,7 +9360,7 @@ function renderSourceLocation(
                 part => escapeHtml(
                     part
                 )
-            ).join(" Â· ")}
+            ).join(" · ")}
         </div>
     `;
 }
@@ -9401,7 +9400,7 @@ function renderDeveloperDetails(
     return `
         <div class="developer-details">
             Chunk <code>${chunk}</code>
-            &nbsp;â€¢&nbsp;
+            &nbsp;•&nbsp;
             Relevance <code>${relevance}</code>
         </div>
     `;
@@ -9445,7 +9444,7 @@ function renderSourcesHtml(
                         <div class="source">
 
                             <span class="source-icon">
-                                â–£
+                                ▣
                             </span>
 
                             <span>
@@ -9489,7 +9488,7 @@ function buildEvidencePreview(content) {
         return normalized;
     }
 
-    return normalized.slice(0, 280).trimEnd() + "â€¦";
+    return normalized.slice(0, 280).trimEnd() + "…";
 
 }
 
@@ -9638,7 +9637,7 @@ async function updateContextPanel(
                         id="contextEvidence${index}"
                     >
                         <div class="context-evidence-loading">
-                            Loading supporting passageâ€¦
+                            Loading supporting passage…
                         </div>
                     </div>
 
@@ -9892,8 +9891,8 @@ function applyTheme(
 
     themeToggleIcon.textContent =
         darkMode
-            ? "â˜€"
-            : "â˜¾";
+            ? "☀"
+            : "☾";
 
 
     themeToggleLabel.textContent =

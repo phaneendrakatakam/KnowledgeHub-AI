@@ -1,384 +1,449 @@
-# KnowledgeHub AI V2
+﻿# KnowledgeHub AI
 
-A document-based Retrieval-Augmented Generation (RAG) application that turns uploaded PDF documents into a conversational, inspectable knowledge base.
+**KnowledgeHub AI** is a multi-user, multimodal Retrieval-Augmented Generation (RAG) application that allows users to build private knowledge bases from their documents and ask questions grounded in the information those documents contain.
 
-KnowledgeHub AI V2 builds on the V1 RAG pipeline with a redesigned workspace, multi-document knowledge-base experience, conversational follow-ups, inspectable source evidence, developer-mode retrieval metadata, dark/light themes, stronger grounded rejection behavior, and expanded automated evaluation.
+The project was built iteratively across three versions, evolving from a basic document-question-answering pipeline into a more complete knowledge workspace with authentication, user isolation, multimodal document understanding, hybrid retrieval, conversational follow-ups, source transparency, and automated testing.
 
-## Features
+---
 
-- Upload and ingest PDF documents through the web interface
-- Automatically extract PDF text using PyMuPDF
-- Split documents into overlapping text chunks
-- Generate vector embeddings using Gemini
-- Store documents, chunks, and embeddings in PostgreSQL with pgvector
-- Perform semantic similarity retrieval
-- Generate answers grounded in retrieved document context
-- Reject unsupported questions instead of relying on general model knowledge
-- Maintain multiple persistent chat sessions
-- Support conversational follow-up questions within a chat
-- Load and delete previous conversations
-- Manage multiple documents in the knowledge base
-- Delete documents and their indexed chunks
-- Display source documents with generated answers
-- Inspect the actual supporting passages in the **Sources & Context** panel
-- Copy generated answers and supporting evidence
-- Toggle **Developer Mode** to inspect chunk indexes and relevance scores
-- Toggle between light and dark themes
-- Persist UI preferences across refreshes
-- Automatically navigate to newly generated answers during longer conversations
-- Render generated Markdown cleanly in the conversation UI
-- Provide improved empty, loading, upload, indexed, and error states
-- Evaluate retrieval behavior independently from answer generation
-- Run end-to-end RAG evaluation for answer/rejection behavior
-- Automated regression coverage for core backend and grounded-source behavior
+## KnowledgeHub AI V3
 
+V3 focuses on making the application behave more like a real multi-user AI knowledge system rather than a single-user RAG prototype.
 
-### KnowledgeHub AI V2 Workspace
+Major additions include:
 
-The V2 interface introduces a three-part workspace for conversations, the active knowledge workspace, and supporting source evidence.
+- User authentication and account management
+- Private per-user knowledge bases
+- Cross-user document and retrieval isolation
+- Admin user-management capabilities
+- Multi-format document ingestion
+- Multimodal document understanding
+- Chart, flowchart, and architecture-diagram interpretation
+- Hybrid semantic + lexical retrieval
+- Wider candidate retrieval followed by reranking
+- Conversational follow-up questions
+- Grounded answer generation
+- Unsupported-question rejection
+- Source metadata and evidence display
+- Expanded automated test coverage
 
-![KnowledgeHub AI V2 Workspace](screenshots/V2/01-v2-main-workspace.png)
+---
 
-### PDF Upload and Ingestion
+## Screenshots
 
-PDFs can be selected from the Knowledge Base panel and ingested into the local vector knowledge base.
+### Admin User Management
 
-![PDF Selected for Upload](screenshots/V2/02-pdf-selected-for-upload.png)
+Administrators can manage application users, account state, sessions, and user access.
 
-![Successful PDF Ingestion](screenshots/V2/03-pdf-upload-success.png)
+![Admin User Management](screenshots/V3/01-admin-user-management.png)
 
-### Multi-Document Knowledge Base
+---
 
-V2 supports multiple indexed PDFs and exposes their state directly in the Knowledge Base panel.
+### Authentication
 
-![Multiple Documents](screenshots/V2/04-knowledge-base-multiple-documents.png)
+KnowledgeHub AI V3 introduces authenticated workspaces so documents, conversations, and retrieval context can remain isolated between users.
 
-### Grounded Question Answering
+![Authentication Login](screenshots/V3/02-authentication-login.png)
 
-KnowledgeHub retrieves relevant document chunks and generates an answer from the retrieved evidence.
+---
 
-![Grounded Answer](screenshots/V2/06-grounded-answer-with-sources.png)
+### Multimodal Flowchart Retrieval
 
-### Sources & Context
+KnowledgeHub can retrieve information represented visually inside documents instead of relying exclusively on extracted paragraph text.
 
-The right-side evidence panel lets the user inspect the actual retrieved passages used to ground the latest answer instead of seeing only a filename.
+![Multimodal Flowchart Retrieval](screenshots/V3/03-multimodal-flowchart-retrieval.png)
 
-![Sources and Context](screenshots/V2/07-supporting-evidence-panel.png)
+---
 
-### Developer Mode
+### Chart Reasoning and Grounded Analysis
 
-Developer Mode exposes retrieval details such as chunk indexes and relevance scores while keeping normal mode focused on readable evidence.
+Visual document content can participate in retrieval and answer generation.
 
-![Developer Mode](screenshots/V2/09-developer-mode-full-workspace.png)
+In this example, KnowledgeHub interprets service availability information contained in a chart and answers both a direct question and a conversational follow-up.
 
-### Conversational Follow-Ups
+![Chart Reasoning and Grounded Analysis](screenshots/V3/04-chart-reasoning-and-grounded-analysis.png)
 
-A user can continue the same conversation with related questions and simpler follow-up requests while retaining the chat session.
-
-![Conversational Follow-ups](screenshots/V2/10-conversational-follow-up.png)
+---
 
 ### Grounded Rejection
 
-When the available documents do not support a question, KnowledgeHub declines to answer rather than inventing information.
+KnowledgeHub is designed not to invent an answer when the retrieved documents do not provide sufficient evidence.
 
-![Grounded Rejection](screenshots/V2/11-grounded-rejection.png)
+![Grounded Unsupported Question Rejection](screenshots/V3/05-grounded-unsupported-question-rejection.png)
 
-### Dark Mode
+---
 
-The V2 workspace supports a persistent dark theme.
+### Separate User Knowledge Base
 
-![Dark Mode](screenshots/V2/12-dark-theme.png)
+A second authenticated user can maintain a completely different document collection and retrieve information from their own technical documents.
+
+![User B Multimodal Architecture Retrieval](screenshots/V3/06-user-b-multimodal-architecture-retrieval.png)
+
+---
+
+### Cross-User Data Isolation
+
+A user cannot retrieve information that exists only inside another user's knowledge base.
+
+![Cross User Data Isolation](screenshots/V3/07-cross-user-data-isolation.png)
+
+---
 
 ### Automated Testing
 
-The V2 automated regression suite currently passes all tests.
+The final V3 build passes the complete automated test suite:
 
-![Automated Tests](screenshots/V2/13-pytest-27-passed.png)
+**107 tests passed**
 
-**V2 automated test result: 27/27 passed.**
+![Pytest 107 Passed](screenshots/V3/08-pytest-107-passed.png)
 
-### End-to-End RAG Evaluation
+---
 
-The end-to-end evaluation checks both answerable and unsupported questions.
+# How It Works
 
-![RAG Evaluation](screenshots/V2/14-rag-evaluation-16-of-16.png)
-
-**V2 RAG evaluation result: 16/16 passed Ã¢â‚¬â€ 100% outcome accuracy.**
-
-## What's New in V2
-
-V1 established the complete document RAG pipeline: ingestion, chunking, embeddings, pgvector retrieval, grounded generation, source attribution, document management, chat sessions, and automated testing.
-
-V2 focuses on making that pipeline more usable, inspectable, conversational, and testable.
-
-| Area | V1 | V2 |
-| --- | --- | --- |
-| RAG pipeline | Grounded document Q&A | Strengthened grounded behavior |
-| Knowledge base | PDF upload/list/delete | Polished multi-document workspace |
-| Sources | Filename/chunk/relevance | Readable supporting evidence panel |
-| Retrieval metadata | Shown with answers | Optional Developer Mode |
-| Conversations | Persistent sessions | Conversational follow-ups + improved navigation |
-| Answer display | Basic response UI | Markdown rendering + copy action |
-| Evidence actions | Not available | Copy supporting evidence |
-| Themes | Single theme | Persistent light/dark themes |
-| UX states | Functional | Improved empty/loading/error/indexed states |
-| Retrieval evaluation | Basic/manual inspection | Dedicated retrieval inspection/evaluation |
-| Automated tests | 16 passing | 27 passing |
-| End-to-end evaluation | Not formalized | 16/16 passing |
-
-## How It Works
+At a high level, KnowledgeHub follows this pipeline:
 
 ```text
-+----------------------+
-|      User Uploads    |
-|         PDF          |
-+----------+-----------+
-           |
-           v
-+----------------------+
-|   Text Extraction    |
-|      PyMuPDF         |
-+----------+-----------+
-           |
-           v
-+----------------------+
-|    Text Chunking     |
-| 1000 chars / 300     |
-|    char overlap      |
-+----------+-----------+
-           |
-           v
-+----------------------+
-| Gemini Embeddings    |
-+----------+-----------+
-           |
-           v
-+----------------------+
-| PostgreSQL + pgvector|
-| Documents / Chunks   |
-| Embeddings / Chats   |
-+----------+-----------+
-           |
-           | User asks question
-           v
-+----------------------+
-| Embed the Question   |
-+----------+-----------+
-           |
-           v
-+----------------------+
-| Vector Similarity    |
-|       Search         |
-+----------+-----------+
-           |
-           v
-+----------------------+
-| Relevance Filtering  |
-+----------+-----------+
-           |
-           +----------------------+
-           |                      |
-       Relevant               Unsupported
-           |                      |
-           v                      v
-+----------------------+   +----------------------+
-| Retrieved Evidence   |   | Grounded Rejection   |
-+----------+-----------+   +----------------------+
-           |
-           v
-+----------------------+
-| Gemini Generation    |
-| Using Retrieved      |
-| Document Context     |
-+----------+-----------+
-           |
-           v
-+----------------------+
-| Grounded Answer +    |
-| Sources + Evidence   |
-+----------+-----------+
-           |
-           v
-+----------------------+
-| Conversation UI /    |
-| Sources & Context    |
-+----------------------+
+Document Upload
+      ↓
+Document Type Detection
+      ↓
+Format-Specific Parsing
+      ↓
+Text + Visual Content Extraction
+      ↓
+Chunking
+      ↓
+Embedding Generation
+      ↓
+PostgreSQL + pgvector
+      ↓
+Semantic Candidate Retrieval
+      ↓
+Hybrid Reranking
+      ↓
+Candidate Relevance Gate
+      ↓
+Grounded LLM Answer Generation
+      ↓
+Answer + Supporting Sources
 ```
 
-## RAG Pipeline
+---
 
-KnowledgeHub AI V2 continues to use a retrieval-augmented generation pipeline.
+# Hybrid Retrieval
 
-### 1. Document Ingestion
+V3 moves beyond relying only on vector similarity.
 
-When a PDF is uploaded, the backend stores it locally and passes it through the ingestion pipeline.
+The retrieval system first obtains a wider semantic candidate pool and then reranks those candidates using a hybrid relevance score.
 
-### 2. Text Extraction
+The current hybrid score combines:
 
-Text is extracted from the PDF using PyMuPDF.
+```text
+70% Semantic Similarity
+30% Lexical Relevance
+```
 
-### 3. Chunking
+Conceptually:
 
-Extracted text is divided into overlapping chunks of approximately 1000 characters with a 300-character overlap.
+```python
+hybrid_score = (
+    0.70 * vector_similarity
+    + 0.30 * lexical_relevance
+)
+```
 
-The overlap helps preserve context across neighboring chunks.
+The candidate retrieval stage searches a pool of at least **50 chunks** before reranking and returning the strongest candidates.
 
-### 4. Embedding Generation
+This helps recover document passages that may contain important exact terminology while still benefiting from semantic similarity.
 
-Each chunk is converted into a vector embedding using Gemini embeddings.
+---
 
-### 5. Vector Storage
+# Multimodal Document Understanding
 
-Document metadata, chunk text, and embeddings are stored in PostgreSQL with pgvector.
+Traditional RAG systems frequently depend only on extracted text.
 
-### 6. Retrieval
+That creates problems when important information exists inside:
 
-A user's question is embedded and compared with stored document vectors.
+- Charts
+- Architecture diagrams
+- Flowcharts
+- Screenshots
+- Scanned pages
+- Images containing text
+- Other document visuals
 
-The closest chunks are retrieved using vector similarity search.
+KnowledgeHub V3 introduces a visual-analysis pipeline that uses Gemini multimodal capabilities to convert useful visual information into structured textual evidence.
 
-### 7. Relevance Filtering
+Recognized visual categories include:
 
-Retrieved chunks are filtered using the configured retrieval boundary before generation.
+```text
+architecture_diagram
+flowchart
+chart
+screenshot
+scanned_page
+image_with_text
+diagram
+other_visual
+```
 
-This prevents weakly related document passages from automatically becoming answer context.
+The resulting visual evidence can then participate in embedding, retrieval, reranking, and grounded answer generation alongside ordinary document text.
 
-### 8. Grounded Answer Generation
+---
 
-Relevant chunks are supplied to Gemini with instructions to answer only from the available document evidence.
+# Multi-Format Document Processing
 
-If the supplied context does not support the requested information, KnowledgeHub returns a grounded fallback rather than answering from general model knowledge.
+V3 introduces a parser architecture instead of coupling document processing to a single format.
 
-### 9. Source Attribution and Evidence
+Current parser modules include:
 
-For supported answers, V2 can expose:
+```text
+backend/parsers/
+├── base.py
+├── pdf_parser.py
+├── docx_parser.py
+├── markdown_parser.py
+├── txt_parser.py
+└── __init__.py
+```
 
-- Document filename
+This makes document ingestion easier to extend as additional formats are introduced.
+
+---
+
+# Authentication and User Isolation
+
+KnowledgeHub V3 supports multiple authenticated users.
+
+User records include account information such as:
+
+- Role
+- Active/disabled state
+- Password-change state
+- Authentication/session information
+
+The first registered account can become the application administrator.
+
+More importantly, document retrieval is scoped by user identity.
+
+Conceptually:
+
+```text
+USER A
+ ├── Documents A1, A2, A3
+ ├── Conversations
+ └── Retrieval Context
+
+USER B
+ ├── Documents B1, B2
+ ├── Conversations
+ └── Retrieval Context
+```
+
+User A's retrieval operations should not expose User B's private document chunks, and vice versa.
+
+This isolation is validated through both automated tests and manual smoke testing.
+
+---
+
+# Grounded Answer Generation
+
+KnowledgeHub follows a document-grounded answering strategy.
+
+Retrieved candidates must pass the relevance stage before being supplied as supporting context for answer generation.
+
+When sufficient supporting information is unavailable, KnowledgeHub can reject the question rather than generating an unsupported answer.
+
+Example:
+
+```text
+User:
+Why did Inventory miss the target?
+
+KnowledgeHub:
+I couldn't find that information in the provided documents.
+```
+
+This distinction is important.
+
+The documents may prove that Inventory missed its availability target without explaining **why** it happened.
+
+KnowledgeHub therefore avoids inventing a cause.
+
+---
+
+# Conversational Follow-Ups
+
+KnowledgeHub maintains limited recent conversation context so users can ask natural follow-up questions.
+
+Example:
+
+```text
+User:
+Which service had the highest availability?
+
+KnowledgeHub:
+The Checkout service had the highest availability at 99.98%.
+
+User:
+What about Payments?
+
+KnowledgeHub:
+The Payments service had an availability of 99.95% in July 2026.
+```
+
+Conversation history is used to resolve what the user is referring to, while document evidence remains the basis for the final answer.
+
+---
+
+# Sources and Transparency
+
+Answers can include supporting source information such as:
+
+- Filename
+- Page number
+- Section
 - Chunk index
-- Relevance score
-- Retrieved supporting passage
+- Source metadata
+- Retrieval relevance
 
-Normal mode emphasizes readable supporting evidence.
+This makes the RAG process easier to inspect and helps users understand where an answer originated.
 
-Developer Mode additionally exposes retrieval metadata useful for debugging and evaluation.
+---
 
-### 10. Conversation Continuity
+# Technology Stack
 
-Messages are stored by chat session. Follow-up questions can therefore be handled as part of the active conversation rather than as isolated UI interactions.
+### Backend
 
-## Architecture
+- Python
+- FastAPI
+- PostgreSQL
+- pgvector
+- Gemini API
 
-```text
-                         +----------------------+
-                         |      V2 Frontend     |
-                         |    HTML / CSS / JS   |
-                         +----------+-----------+
-                                    |
-                                    | HTTP
-                                    v
-                         +----------------------+
-                         |       FastAPI        |
-                         |       Backend        |
-                         +----------+-----------+
-                                    |
-                 +------------------+------------------+
-                 |                  |                  |
-                 v                  v                  v
-        +----------------+ +----------------+ +----------------+
-        |    Document    | |      Chat      | |      RAG       |
-        |   Management   | |   Management   | |    Pipeline    |
-        +-------+--------+ +-------+--------+ +-------+--------+
-                |                  |                  |
-                v                  v                  v
-        +----------------+ +----------------+ +----------------+
-        | Upload / List  | | Create / Load  | | Embeddings     |
-        | Delete / Index | | Delete / Store | | Retrieval      |
-        +----------------+ | Follow-ups     | | Filtering      |
-                           +----------------+ | Generation     |
-                                            +-------+--------+
-                                                    |
-                               +--------------------+--------------------+
-                               |                                         |
-                               v                                         v
-                      +------------------+                      +------------------+
-                      | PostgreSQL       |                      |    Gemini API    |
-                      | + pgvector       |                      +------------------+
-                      +------------------+
-                               |
-                               v
-                      +------------------+
-                      | Sources / Chats  |
-                      | Evidence / State |
-                      +------------------+
-```
+### Document Processing
 
-## Technology Stack
+- PyMuPDF
+- PDF parsing
+- DOCX parsing
+- Markdown parsing
+- TXT parsing
+- Gemini multimodal visual analysis
 
-| Component | Technology |
-| --- | --- |
-| Frontend | HTML, CSS, JavaScript |
-| Backend API | FastAPI |
-| Language | Python |
-| Database | PostgreSQL |
-| Vector Search | pgvector |
-| Embeddings | Gemini Embeddings |
-| Generation | Gemini |
-| PDF Processing | PyMuPDF |
-| Database Driver | psycopg |
-| Environment Configuration | python-dotenv |
-| Testing | pytest |
+### Retrieval
 
-## Project Structure
+- Vector embeddings
+- PostgreSQL + pgvector similarity search
+- Lexical relevance scoring
+- Hybrid reranking
+- Candidate relevance gating
+
+### Frontend
+
+- HTML
+- CSS
+- JavaScript
+
+### Testing
+
+- pytest
+
+---
+
+# Project Structure
 
 ```text
 KnowledgeHub-AI/
-|
-+-- backend/
-|   +-- db.py
-|   +-- embedding.py
-|   +-- ingest.py
-|   +-- main.py
-|   +-- process_document.py
-|   +-- rag.py
-|   +-- search.py
-|   +-- evaluate_retrieval.py
-|   +-- evaluate_rag.py
-|   +-- .env                  # Local only - not committed
-|
-+-- documents/
-|   +-- .gitkeep
-|   +-- Uploaded PDFs         # Local only - not committed
-|
-+-- frontend/
-|   +-- index.html
-|
-+-- tests/
-|   +-- automated test files
-|
-+-- screenshots/
-|   +-- V1/
-|   +-- V2/
-|
-+-- .gitignore
-+-- README.md
+│
+├── backend/
+│   ├── parsers/
+│   │   ├── __init__.py
+│   │   ├── base.py
+│   │   ├── docx_parser.py
+│   │   ├── markdown_parser.py
+│   │   ├── pdf_parser.py
+│   │   └── txt_parser.py
+│   │
+│   ├── auth.py
+│   ├── db.py
+│   ├── ingest.py
+│   ├── main.py
+│   ├── process_document.py
+│   ├── rag.py
+│   ├── search.py
+│   ├── visual_analyzer.py
+│   ├── evaluate_rag.py
+│   └── evaluate_retrieval.py
+│
+├── frontend/
+│   └── index.html
+│
+├── screenshots/
+│   └── V3/
+│
+├── tests/
+│
+├── .env.example
+├── .gitignore
+├── requirements.txt
+└── README.md
 ```
 
-> Adjust this tree if your final V2 branch uses slightly different test or screenshot filenames.
+---
 
-## Environment Variables
+# Setup
 
-The backend uses local environment variables for Gemini and PostgreSQL configuration.
+## 1. Clone the Repository
 
-Create:
+```bash
+git clone <your-repository-url>
+cd KnowledgeHub-AI
+```
+
+## 2. Create a Virtual Environment
+
+Windows:
+
+```bash
+python -m venv .venv
+.venv\Scripts\activate
+```
+
+macOS/Linux:
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+```
+
+## 3. Install Dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+## 4. Configure Environment Variables
+
+Copy:
+
+```text
+.env.example
+```
+
+to:
 
 ```text
 backend/.env
 ```
 
+Then configure the required values.
+
 Example:
 
 ```env
 GEMINI_API_KEY=your_gemini_api_key
+GEMINI_VISUAL_MODEL=gemini-3.1-flash-lite
 
 POSTGRES_HOST=localhost
 POSTGRES_PORT=5432
@@ -387,419 +452,154 @@ POSTGRES_USER=postgres
 POSTGRES_PASSWORD=your_postgres_password
 ```
 
-**Never commit the `.env` file or real API credentials.**
+Never commit the real `.env` file.
 
-Uploaded documents, credentials, Python cache files, and other local-only files should remain excluded through `.gitignore`.
+---
 
-## Running Locally
+# Running the Application
 
-### 1. Clone the Repository
-
-```bash
-git clone https://github.com/phaneendrakatakam/KnowledgeHub-AI.git
-cd KnowledgeHub-AI
-```
-
-To work specifically with the V2 development branch:
-
-```bash
-git checkout v2-development
-```
-
-### 2. Configure PostgreSQL
-
-Create the PostgreSQL database:
-
-```text
-knowledgehub
-```
-
-Ensure the pgvector extension is available.
-
-### 3. Configure Environment Variables
-
-Create `backend/.env` and add the required Gemini and PostgreSQL configuration.
-
-### 4. Start the Backend
+From the backend directory:
 
 ```bash
 cd backend
-python -m uvicorn main:app --reload
+uvicorn main:app --reload
 ```
 
-The local FastAPI backend runs at:
+Then open the application frontend using the project's local frontend workflow.
 
-```text
-http://127.0.0.1:8000
-```
+---
 
-### 5. Open the Frontend
+# Running Tests
 
-Open:
-
-```text
-frontend/index.html
-```
-
-in a browser.
-
-The frontend communicates with FastAPI and provides the complete V2 knowledge workspace.
-
-## API Endpoints
-
-### Health Check
-
-```http
-GET /
-```
-
-Confirms that the backend is running.
-
-### Upload Document
-
-```http
-POST /documents/upload
-```
-
-Uploads and ingests a PDF.
-
-### List Documents
-
-```http
-GET /documents
-```
-
-Returns indexed documents.
-
-### Delete Document
-
-```http
-DELETE /documents/{document_id}
-```
-
-Deletes the document record and its associated indexed chunks.
-
-### Create Chat
-
-```http
-POST /chats
-```
-
-Creates a new chat session.
-
-### List Chats
-
-```http
-GET /chats
-```
-
-Returns saved chat sessions.
-
-### Load Chat
-
-```http
-GET /chats/{session_id}
-```
-
-Loads a chat and its stored messages.
-
-### Delete Chat
-
-```http
-DELETE /chats/{session_id}
-```
-
-Deletes a chat session and its messages.
-
-### Ask a Question
-
-```http
-POST /ask
-```
-
-Processes a question through retrieval, relevance filtering, grounded generation, source attribution, and chat persistence.
-
-## Example Workflow
-
-1. Start PostgreSQL with pgvector enabled.
-2. Configure `backend/.env`.
-3. Start the FastAPI backend.
-4. Open the V2 frontend.
-5. Add a PDF from the Knowledge Base panel.
-6. Upload and wait for ingestion to complete.
-7. Ask a question supported by the uploaded document.
-8. KnowledgeHub embeds the question and retrieves candidate chunks.
-9. Retrieval filtering determines which evidence is sufficiently relevant.
-10. Gemini generates an answer from the retrieved context.
-11. The answer and its source information appear in the conversation.
-12. Inspect the supporting passage in **Sources & Context**.
-13. Enable **Developer Mode** to inspect chunk and relevance metadata.
-14. Ask a conversational follow-up in the same session.
-15. Ask an unsupported question to verify grounded rejection behavior.
-
-## Testing
-
-KnowledgeHub AI V2 uses automated tests, manual regression testing, retrieval inspection, and end-to-end RAG evaluation.
-
-### Automated Testing
-
-Run the complete automated suite from the project root:
+From the project root:
 
 ```bash
-python -m pytest -v
+pytest
 ```
 
-Current V2 result:
+Final V3 validation:
 
 ```text
-27 passed
+107 passed
 ```
 
-The suite covers core behavior including:
+---
 
-- PDF extraction and processing
-- Chunk creation and overlap behavior
-- Embedding flow with mocks
-- Search behavior
-- Search limits and empty results
-- Relevance filtering
-- RAG fallback behavior
-- Prompt/context construction
-- Source attribution
-- Multiple sources
-- Grounded rejection behavior
-- Rejected-answer source handling
-- Additional V2 backend regression cases
+# Version Evolution
 
-External dependencies are mocked where appropriate so application logic can be tested without unnecessary Gemini API or database calls.
+## V1 — Core RAG Pipeline
 
-### Retrieval Evaluation
+The first version focused on understanding the complete RAG workflow:
 
-V2 includes a retrieval evaluation workflow that inspects:
-
-- Retrieved chunks
-- Vector distance
-- Display relevance
-- Threshold behavior
-- Answerable questions
-- Questions expected to be rejected
-
-This makes retrieval behavior observable independently of generation.
-
-### End-to-End RAG Evaluation
-
-Run:
-
-```bash
-cd backend
-python evaluate_rag.py
-```
-
-Current V2 result:
-
-```text
-Passed: 16
-Failed: 0
-Total: 16
-Outcome accuracy: 100.00%
-
-END-TO-END RAG EVALUATION PASSED.
-```
-
-The evaluation includes both supported document questions and intentionally unsupported questions.
-
-A key rejection case verifies that a semantically related retrieval result does not force an unsupported answer.
-
-For example:
-
-```text
-Question:
-Does Jenkins belong to Microsoft?
-
-KnowledgeHub:
-I couldn't find that information in the provided documents.
-```
-
-The final grounded rejection returns no supporting sources.
-
-### Manual V2 Regression Testing
-
-The completed V2 regression pass covers:
-
-- PDF upload
 - PDF ingestion
-- Multiple-document display
-- Document deletion
-- Grounded question answering
-- Unsupported-question rejection
-- Conversational follow-ups
-- Source display
-- Supporting evidence display
-- Copy answer
-- Copy evidence
-- Developer Mode
-- Dark/light theme switching
-- Theme persistence
-- Chat creation
-- Chat loading
-- Chat deletion
-- Browser refresh persistence
-- Auto-navigation to newly generated answers
-- Automated test suite
-- Retrieval evaluation
-- End-to-end RAG evaluation
-
-## Grounding Philosophy
-
-KnowledgeHub is intentionally document-grounded.
-
-A language model may know an answer from its general training, but KnowledgeHub should not use that knowledge unless the uploaded documents provide sufficient evidence.
-
-This means:
-
-```text
-Relevant document evidence
-        |
-        v
-Generate grounded answer
-```
-
-while:
-
-```text
-Insufficient / unsupported evidence
-        |
-        v
-Decline to answer
-```
-
-This behavior is a core part of the project rather than simply an error state.
-
-## Developer Mode
-
-Developer Mode is intended for inspecting retrieval behavior without cluttering the normal user experience.
-
-When disabled, the Sources & Context panel focuses on:
-
-- Source document
-- Supporting passage
-- Evidence inspection
-- Copy evidence
-
-When enabled, additional retrieval metadata is exposed, including:
-
-- Chunk index
-- Relevance score
-
-This provides a lightweight debugging surface for understanding why the RAG system selected particular evidence.
-
-## UI and UX Improvements in V2
-
-V2 substantially redesigns the original interface around a knowledge workspace.
-
-Key improvements include:
-
-- Dedicated conversation sidebar
-- Dedicated Knowledge Base panel
-- Workspace summary cards
-- Sources & Context evidence sidebar
-- Readable supporting passages
-- Developer Mode
-- Light/dark themes
-- Persistent theme preference
-- Copy actions
-- Markdown answer rendering
-- Improved document states
-- Improved empty states
-- Improved loading and error feedback
-- Automatic navigation to newly generated answers
-- Cleaner multi-turn conversation layout
-
-The interface deliberately avoids decorative metrics that do not represent useful application state.
-
-## Security Notes
-
-The repository intentionally excludes sensitive and local-only data such as:
-
-- Gemini API keys
-- PostgreSQL credentials
-- `.env` files
-- Uploaded documents
-- Python cache files
-- Other machine-specific files
-
-Never hard-code credentials into application source code.
-
-If a credential is accidentally exposed in a public repository, revoke it and replace it immediately.
-
-## Current Limitations
-
-- PDF is currently the supported document format.
-- Uploaded documents are stored locally.
-- The application currently runs as a local project rather than a production-hosted service.
-- Authentication and authorization are not yet implemented.
-- Retrieval quality still depends on extraction quality, chunking, embeddings, and similarity configuration.
-- The current relevance boundary is application-specific rather than a universally calibrated confidence score.
-- The frontend remains a lightweight HTML/CSS/JavaScript application rather than a framework-based frontend.
-- Production deployment, centralized observability, and CI/CD automation are outside the current V2 scope.
-
-## V3 Roadmap
-
-Potential V3 improvements include:
-
-- Authentication and authorization
-- Additional document formats
-- More advanced chunking strategies
-- Hybrid retrieval
-- Reranking
-- Improved retrieval evaluation datasets and metrics
-- Production-ready dependency management
-- Containerization
-- CI/CD automation
-- Application observability
-- Production deployment
-- Larger-scale knowledge-base management
-- Additional conversation and evidence navigation improvements
-
-V3 should be driven by measured retrieval/application needs rather than adding complexity solely for feature count.
-
-## Project Status
-
-**KnowledgeHub AI V2 is completed**
-
-V2 includes:
-
-- Complete V1 document RAG foundation
-- Redesigned knowledge workspace
-- Multi-document knowledge-base UX
-- Persistent conversations
-- Conversational follow-ups
+- Text extraction
+- Chunking
+- Gemini embeddings
+- PostgreSQL + pgvector
+- Vector similarity search
 - Grounded answer generation
-- Strengthened unsupported-question rejection
-- Source attribution
-- Supporting evidence inspection
-- Sources & Context panel
-- Copy answer and evidence actions
-- Developer Mode
-- Chunk/relevance inspection
-- Markdown answer rendering
-- Light/dark themes with persistence
-- Improved application states
-- Automatic answer navigation
-- Expanded automated regression coverage
-- Retrieval evaluation
-- End-to-end RAG evaluation
-- Full manual V2 regression pass
+- Source display
+- Basic relevance rejection
+- Multiple chat sessions
+- Automated testing
 
-**Automated test suite: 27/27 passed.**
+---
 
-**End-to-end RAG evaluation: 16/16 passed with 100% outcome accuracy.**
+## V2 — Reliability and Conversational RAG
 
-V2 is feature-complete and establishes the next stable foundation for future KnowledgeHub AI development.
+V2 focused on making the RAG application more transparent and reliable.
 
-## Author
+Major improvements included:
 
-**Phaneendra Katakam**
+- Multi-document knowledge base
+- Conversational follow-up questions
+- Sources & Context inspection
+- Developer-oriented retrieval visibility
+- Improved grounded rejection behavior
+- Expanded RAG evaluation and automated testing
 
-GitHub: [@phaneendrakatakam](https://github.com/phaneendrakatakam)
+---
 
+## V3 — Multi-User Multimodal Knowledge Workspace
+
+V3 expands the project significantly:
+
+- Authentication
+- User roles
+- Admin user management
+- User-specific knowledge bases
+- Cross-user retrieval isolation
+- Multi-format parsers
+- Multimodal visual understanding
+- Chart reasoning
+- Flowchart understanding
+- Architecture-diagram understanding
+- Hybrid semantic + lexical retrieval
+- Wider candidate retrieval and reranking
+- Improved conversational retrieval
+- Source metadata
+- Production-oriented robustness testing
+- **107 passing automated tests**
+
+V3 represents the transition from a basic RAG application into a more complete document intelligence and knowledge-workspace system.
+
+---
+
+# Key Engineering Lessons
+
+Building KnowledgeHub across three versions highlighted several important RAG engineering lessons.
+
+### Retrieval quality matters as much as generation
+
+A capable language model cannot answer correctly if the relevant evidence never reaches the generation stage.
+
+### Vector similarity alone is not always enough
+
+Semantically related passages can outrank passages containing the exact information required by the question.
+
+Hybrid retrieval helps combine semantic understanding with lexical evidence.
+
+### Candidate retrieval and final context are different problems
+
+Retrieving a larger candidate pool does not mean sending every candidate to the LLM.
+
+A better architecture is:
+
+```text
+Broad Retrieval
+      ↓
+Reranking
+      ↓
+Evidence Selection
+      ↓
+Grounded Generation
+```
+
+### Documents are not only text
+
+Important information frequently exists inside charts, diagrams, flowcharts, and other visual elements.
+
+A useful document intelligence system therefore needs to understand both textual and visual evidence.
+
+### Grounded rejection is a feature
+
+Knowing when the documents **do not contain an answer** is as important as answering when they do.
+
+### Multi-user RAG requires retrieval isolation
+
+Authentication alone is insufficient.
+
+Document search itself must be scoped so one user's private knowledge cannot become retrieval context for another user.
+
+---
+
+# Current Status
+
+**KnowledgeHub AI V3 — Complete**
+
+- V3 implementation complete
+- Authentication and multi-user isolation implemented
+- Multimodal document understanding implemented
+- Hybrid retrieval implemented
+- Manual smoke testing completed
+- **107 automated tests passing**

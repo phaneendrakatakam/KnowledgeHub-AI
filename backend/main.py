@@ -15,6 +15,8 @@ from fastapi.middleware.cors import (
     CORSMiddleware
 )
 
+from fastapi.responses import FileResponse
+
 from auth import (
     AccountDisabledError,
     authenticate_user,
@@ -47,6 +49,14 @@ async def lifespan(
 app = FastAPI(
     title="KnowledgeHub AI V3",
     lifespan=lifespan
+)
+
+
+BASE_DIR = Path(__file__).resolve().parent
+FRONTEND_FILE = (
+    BASE_DIR.parent
+    / "frontend"
+    / "index.html"
 )
 
 
@@ -144,10 +154,18 @@ def public_user(
 
 @app.get("/")
 def home():
-    return {
-        "message":
-            "KnowledgeHub AI backend is running!"
-    }
+    if not FRONTEND_FILE.exists():
+        raise HTTPException(
+            status_code=500,
+            detail=(
+                "KnowledgeHub frontend file "
+                "could not be found."
+            )
+        )
+
+    return FileResponse(
+        FRONTEND_FILE
+    )
 
 
 # ============================================================
