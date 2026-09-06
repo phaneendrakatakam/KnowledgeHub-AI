@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 ﻿# KnowledgeHub AI
+=======
+# KnowledgeHub AI
+>>>>>>> 27f49faadf6a73f17cc5bf165ed3a408e78a3bc4
 
 **KnowledgeHub AI** is a multi-user, multimodal Retrieval-Augmented Generation (RAG) application that allows users to build private knowledge bases from their documents and ask questions grounded in the information those documents contain.
 
@@ -510,6 +514,8 @@ The first version focused on understanding the complete RAG workflow:
 V2 focused on making the RAG application more transparent and reliable.
 
 Major improvements included:
+<<<<<<< HEAD
+=======
 
 - Multi-document knowledge base
 - Conversational follow-up questions
@@ -603,3 +609,145 @@ Document search itself must be scoped so one user's private knowledge cannot bec
 - Hybrid retrieval implemented
 - Manual smoke testing completed
 - **107 automated tests passing**
+
+- ---
+
+# Current Limitations
+
+KnowledgeHub AI V3 is a portfolio-focused implementation rather than a fully production-deployed SaaS platform.
+
+Current limitations include:
+
+- The application currently runs as a local development deployment rather than a publicly hosted production service.
+- Authentication is application-managed and does not currently include external identity providers such as Google or Microsoft OAuth.
+- Document ingestion currently supports PDF, DOCX, Markdown, and TXT rather than every possible enterprise document format.
+- Multimodal understanding depends on the quality of visual extraction and model interpretation, so highly complex or low-quality document visuals may still be challenging.
+- Hybrid retrieval uses a manually designed semantic/lexical scoring strategy rather than a dedicated learned reranking model.
+- Retrieval thresholds and scoring weights are currently application-level configuration choices rather than dynamically calibrated values.
+- The system does not yet include enterprise-scale capabilities such as distributed ingestion workers, object storage, centralized observability, rate limiting, or horizontal scaling.
+- Automated tests and manual smoke tests provide strong local validation, but production load and large-scale concurrency testing have not yet been performed.
+
+These limitations define potential directions for future versions rather than being hidden behind the current feature set.
+
+---
+
+# Future Improvements
+
+Potential next steps include:
+
+- Production deployment and containerization
+- OAuth / enterprise identity integration
+- Dedicated reranking models
+- Additional document formats
+- Background ingestion queues
+- Object-storage integration
+- Retrieval and LLM observability
+- Rate limiting and production security hardening
+- Larger-scale retrieval evaluation datasets
+- Performance and load testing
+- Streaming answer generation
+- More advanced multimodal document reasoning
+
+---
+
+# Author
+>>>>>>> 27f49faadf6a73f17cc5bf165ed3a408e78a3bc4
+
+- Multi-document knowledge base
+- Conversational follow-up questions
+- Sources & Context inspection
+- Developer-oriented retrieval visibility
+- Improved grounded rejection behavior
+- Expanded RAG evaluation and automated testing
+
+<<<<<<< HEAD
+---
+
+## V3 — Multi-User Multimodal Knowledge Workspace
+
+V3 expands the project significantly:
+
+- Authentication
+- User roles
+- Admin user management
+- User-specific knowledge bases
+- Cross-user retrieval isolation
+- Multi-format parsers
+- Multimodal visual understanding
+- Chart reasoning
+- Flowchart understanding
+- Architecture-diagram understanding
+- Hybrid semantic + lexical retrieval
+- Wider candidate retrieval and reranking
+- Improved conversational retrieval
+- Source metadata
+- Production-oriented robustness testing
+- **107 passing automated tests**
+
+V3 represents the transition from a basic RAG application into a more complete document intelligence and knowledge-workspace system.
+
+---
+
+# Key Engineering Lessons
+
+Building KnowledgeHub across three versions highlighted several important RAG engineering lessons.
+
+### Retrieval quality matters as much as generation
+
+A capable language model cannot answer correctly if the relevant evidence never reaches the generation stage.
+
+### Vector similarity alone is not always enough
+
+Semantically related passages can outrank passages containing the exact information required by the question.
+
+Hybrid retrieval helps combine semantic understanding with lexical evidence.
+
+### Candidate retrieval and final context are different problems
+
+Retrieving a larger candidate pool does not mean sending every candidate to the LLM.
+
+A better architecture is:
+
+```text
+Broad Retrieval
+      ↓
+Reranking
+      ↓
+Evidence Selection
+      ↓
+Grounded Generation
+```
+
+### Documents are not only text
+
+Important information frequently exists inside charts, diagrams, flowcharts, and other visual elements.
+
+A useful document intelligence system therefore needs to understand both textual and visual evidence.
+
+### Grounded rejection is a feature
+
+Knowing when the documents **do not contain an answer** is as important as answering when they do.
+
+### Multi-user RAG requires retrieval isolation
+
+Authentication alone is insufficient.
+
+Document search itself must be scoped so one user's private knowledge cannot become retrieval context for another user.
+
+---
+
+# Current Status
+
+**KnowledgeHub AI V3 — Complete**
+
+- V3 implementation complete
+- Authentication and multi-user isolation implemented
+- Multimodal document understanding implemented
+- Hybrid retrieval implemented
+- Manual smoke testing completed
+- **107 automated tests passing**
+=======
+Cloud / DevOps Engineer exploring the intersection of **AI engineering, RAG systems, cloud infrastructure, and forward-deployed engineering**.
+
+KnowledgeHub AI was built as a hands-on engineering project to understand how reliable AI applications behave beyond a simple LLM demo — including retrieval quality, grounding, multimodal document understanding, authentication, user isolation, failure handling, and testing.
+>>>>>>> 27f49faadf6a73f17cc5bf165ed3a408e78a3bc4
