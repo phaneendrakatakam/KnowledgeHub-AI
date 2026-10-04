@@ -1,0 +1,44 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Virtual environments
+venv/
+.venv/
+env/
+
+# Environment variables / secrets
+.env
+.env.*
+
+# Keep the example environment file
+!.env.example
+
+# IDE / editor files
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.temp
+# Local uploaded documents
+documents/*
+!documents/.gitkeep
+# Test/runtime caches
+.pytest_cache/
+**/.pytest_cache/
+
+# Local destructive development utility
+backend/reset_auth_test_data.py
+
+# Temporary upload/backup artifacts
+documents/**/.upload_*
+documents/**/.backup_*
