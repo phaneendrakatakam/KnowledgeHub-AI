@@ -1,0 +1,54 @@
+steps:
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - -t
+      - asia-south1-docker.pkg.dev/$PROJECT_ID/ai-portfolio/knowledgehub-ai:$COMMIT_SHA
+      - .
+
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - push
+      - asia-south1-docker.pkg.dev/$PROJECT_ID/ai-portfolio/knowledgehub-ai:$COMMIT_SHA
+
+  - name: gcr.io/google.com/cloudsdktool/cloud-sdk
+    entrypoint: gcloud
+    args:
+      - run
+      - deploy
+      - knowledgehub-ai
+      - --image
+      - asia-south1-docker.pkg.dev/$PROJECT_ID/ai-portfolio/knowledgehub-ai:$COMMIT_SHA
+      - --region
+      - asia-south1
+      - --platform
+      - managed
+      - --service-account
+      - knowledgehub-runner@phaneendra-ai-portfolio.iam.gserviceaccount.com
+      - --allow-unauthenticated
+      - --port
+      - "8080"
+      - --cpu
+      - "1"
+      - --memory
+      - "1Gi"
+      - --timeout
+      - "300"
+      - --concurrency
+      - "20"
+      - --max-instances
+      - "3"
+      - --min-instances
+      - "0"
+      - --set-env-vars
+      - POSTGRES_HOST=ep-muddy-poetry-b3jzvpa4-pooler.c-4.ap-southeast-1.aws.neon.tech,POSTGRES_PORT=5432,POSTGRES_DB=neondb,POSTGRES_USER=neondb_owner,STORAGE_BACKEND=r2,R2_ENDPOINT=https://65752f1843c4fb485b2c504a8f1c3a51.r2.cloudflarestorage.com,R2_BUCKET=knowledgehub-documents,PGSSLMODE=require
+      - --set-secrets
+      - POSTGRES_PASSWORD=knowledgehub-db-password:7,GEMINI_API_KEY=knowledgehub-gemini-key:2,R2_ACCESS_KEY_ID=knowledgehub-r2-access-key:1,R2_SECRET_ACCESS_KEY=knowledgehub-r2-secret-key:1
+
+images:
+  - asia-south1-docker.pkg.dev/$PROJECT_ID/ai-portfolio/knowledgehub-ai:$COMMIT_SHA
+
+options:
+  logging: CLOUD_LOGGING_ONLY
+
+timeout: "1200s"
