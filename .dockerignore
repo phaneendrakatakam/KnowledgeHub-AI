@@ -6,4 +6,7 @@ __pycache__
 *.pyc
 *.pyo
 *.log
+.agents
+brag-output
+tests
 screenshots
