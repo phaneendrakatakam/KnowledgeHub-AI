@@ -1,4 +1,5 @@
 import os
+import secrets
 from pathlib import Path
 
 
@@ -49,18 +50,19 @@ def archive_document(user_id: int, filename: str, file_path: str) -> str | None:
     if not _r2_enabled():
         return None
 
-    key = _object_key(user_id, filename)
+    key = f"users/{user_id}/{secrets.token_hex(16)}/{Path(filename).name}"
     client = _r2_client()
     client.upload_file(file_path, _bucket(), key)
     return key
 
 
-def delete_document_archive(user_id: int, filename: str) -> bool:
-    if not _r2_enabled():
+def delete_document_archive(user_id: int, object_key: str | None) -> bool:
+    """Delete an exact persisted key; never derive a key from a filename."""
+    if not _r2_enabled() or not object_key:
         return True
-
-    client = _r2_client()
-    client.delete_object(Bucket=_bucket(), Key=_object_key(user_id, filename))
+    if not object_key.startswith(f"users/{user_id}/"):
+        raise ValueError("R2 key does not belong to the requested user")
+    _r2_client().delete_object(Bucket=_bucket(), Key=object_key)
     return True
 
 
@@ -95,3 +97,14 @@ def delete_user_archive(user_id: int) -> int:
             break
 
     return deleted
+
+
+def ensure_storage_schema():
+    """Run only when R2 is enabled; tracks immutable R2 object references."""
+    if not _r2_enabled():
+        return
+    from db import get_connection
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("ALTER TABLE documents ADD COLUMN IF NOT EXISTS r2_object_key TEXT")
+        conn.commit()

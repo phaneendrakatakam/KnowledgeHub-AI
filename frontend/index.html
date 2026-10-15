@@ -4,6 +4,7 @@
 <head>
 
     <meta charset="UTF-8">
+    <script src="./config.js"></script>
 
     <meta
         name="viewport"
@@ -6259,7 +6260,7 @@
 <script>
 
 
-const API_URL = window.location.origin;
+const API_URL = window.KNOWLEDGEHUB_API_URL || window.location.origin;
 
 
 const AUTH_TOKEN_KEY =

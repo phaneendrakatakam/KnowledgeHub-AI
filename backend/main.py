@@ -1,4 +1,6 @@
 from pathlib import Path
+import os
+import tempfile
 import json
 import shutil
 import secrets
@@ -36,6 +38,10 @@ from ingest import (
     prepare_document_for_ingestion
 )
 from rag import generate_answer
+from storage import (
+    _r2_enabled, archive_document, delete_document_archive,
+    delete_user_archive, ensure_storage_schema,
+)
 
 
 @asynccontextmanager
@@ -43,6 +49,7 @@ async def lifespan(
     app: FastAPI
 ):
     ensure_auth_schema()
+    ensure_storage_schema()
     yield
 
 
@@ -62,16 +69,14 @@ FRONTEND_FILE = (
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[origin.strip() for origin in os.getenv("CORS_ORIGINS", "").split(",") if origin.strip()] or (["*"] if not _r2_enabled() else []),
     allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 
-DOCUMENTS_DIR = Path(
-    "../documents"
-)
+DOCUMENTS_DIR = Path(os.getenv("DOCUMENTS_DIR", str(Path(tempfile.gettempdir()) / "knowledgehub-documents")))
 
 DOCUMENTS_DIR.mkdir(
     exist_ok=True
@@ -819,6 +824,13 @@ def delete_user_account(
     except Exception:
         files_removed = False
 
+    if _r2_enabled():
+        try:
+            delete_user_archive(user_id)
+        except Exception as error:
+            print("R2 account cleanup failed:", repr(error))
+            files_removed = False
+
     return {
         "success": True,
         "message": (
@@ -1013,6 +1025,9 @@ async def upload_document(
     )
 
     backup_path = None
+    new_archive_key = None
+    previous_archive_key = None
+    archive_committed = False
     total_size = 0
 
     try:
@@ -1065,6 +1080,21 @@ async def upload_document(
             )
         )
 
+        if _r2_enabled():
+            # Immutable upload: an unsuccessful replacement cannot overwrite
+            # the previously committed R2 object.
+            with get_connection() as conn:
+                with conn.cursor() as cur:
+                    cur.execute(
+                        "SELECT r2_object_key FROM documents WHERE user_id = %s AND filename = %s",
+                        (current_user["id"], filename),
+                    )
+                    existing = cur.fetchone()
+                    previous_archive_key = existing[0] if existing else None
+            new_archive_key = archive_document(
+                current_user["id"], filename, str(temp_path)
+            )
+
         # Stage 3: safely place the physical file. If this is a
         # replacement, keep the previous good file as a temporary
         # backup until the database transaction succeeds.
@@ -1093,9 +1123,10 @@ async def upload_document(
                 str(final_path),
                 user_id=current_user["id"],
                 logical_filename=filename,
-                prepared_results=
-                    prepared_results
+                prepared_results=prepared_results,
+                archive_key=new_archive_key,
             )
+            archive_committed = True
 
         except Exception:
             # Database persistence failed. Restore the previous good
@@ -1119,6 +1150,21 @@ async def upload_document(
                     pass
 
             raise
+
+        if _r2_enabled():
+            # The database now points to the new immutable object.
+            # Failure to remove the previous object only leaves an orphan,
+            # never corrupts the active document.
+            if previous_archive_key:
+                try:
+                    delete_document_archive(current_user["id"], previous_archive_key)
+                except Exception as cleanup_error:
+                    print("Old R2 archive cleanup failed:", repr(cleanup_error))
+            try:
+                if final_path.exists():
+                    final_path.unlink()
+            except Exception as cleanup_error:
+                print("Temporary upload cleanup failed:", repr(cleanup_error))
 
         # Database persistence succeeded. The backup is no longer
         # needed. A cleanup failure is non-fatal and is logged only.
@@ -1186,6 +1232,11 @@ async def upload_document(
         }
 
     except HTTPException:
+        if new_archive_key and not archive_committed:
+            try:
+                delete_document_archive(current_user["id"], new_archive_key)
+            except Exception as cleanup_error:
+                print("Failed R2 upload cleanup:", repr(cleanup_error))
         try:
             if temp_path.exists():
                 temp_path.unlink()
@@ -1209,6 +1260,11 @@ async def upload_document(
         raise
 
     except Exception as error:
+        if new_archive_key and not archive_committed:
+            try:
+                delete_document_archive(current_user["id"], new_archive_key)
+            except Exception as cleanup_error:
+                print("Failed R2 upload cleanup:", repr(cleanup_error))
         print(
             "Document upload or ingestion "
             "failed:",
@@ -1404,7 +1460,7 @@ def delete_document(
                 """
                 SELECT
                     id,
-                    filename
+                    filename""" + (", r2_object_key" if _r2_enabled() else "") + """
                 FROM documents
                 WHERE
                     id = %s
@@ -1425,6 +1481,7 @@ def delete_document(
                 )
 
             filename = document[1]
+            archive_key = document[2] if _r2_enabled() else None
 
             cur.execute(
                 """
@@ -1452,6 +1509,13 @@ def delete_document(
     )
 
     file_deleted = True
+
+    if _r2_enabled() and archive_key:
+        try:
+            delete_document_archive(current_user["id"], archive_key)
+        except Exception as error:
+            print("R2 document cleanup failed:", repr(error))
+            file_deleted = False
 
     try:
         if file_path.exists():

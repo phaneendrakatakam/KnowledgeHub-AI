@@ -59,7 +59,8 @@ def ingest_document(
     file_path: str,
     user_id: int | None = None,
     logical_filename: str | None = None,
-    prepared_results=None
+    prepared_results=None,
+    archive_key: str | None = None
 ):
     """
     Ingest a supported document into KnowledgeHub.
@@ -191,6 +192,12 @@ def ingest_document(
                 print(
                     f"New Document ID: "
                     f"{document_id}"
+                )
+
+            if archive_key is not None:
+                cur.execute(
+                    "UPDATE documents SET r2_object_key = %s WHERE id = %s",
+                    (archive_key, document_id),
                 )
 
             for result in results:
