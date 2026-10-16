@@ -1,8 +1,6 @@
-<<<<<<< HEAD
-﻿# KnowledgeHub AI
-=======
 # KnowledgeHub AI
->>>>>>> 27f49faadf6a73f17cc5bf165ed3a408e78a3bc4
+
+[**Live Application**](https://knowledgehub-ai-cum.pages.dev)  
 
 **KnowledgeHub AI** is a multi-user, multimodal Retrieval-Augmented Generation (RAG) application that allows users to build private knowledge bases from their documents and ask questions grounded in the information those documents contain.
 
@@ -353,139 +351,176 @@ This makes the RAG process easier to inspect and helps users understand where an
 
 - pytest
 
+### Deployment Infrastructure
+
+- **Cloudflare Pages:** Static frontend hosting and continuous deployment
+- **Render:** Hosted FastAPI backend
+- **Neon:** Managed PostgreSQL database with pgvector
+- **Cloudflare R2:** Uploaded document archive storage
+- **Gemini API:** Embeddings, multimodal analysis, and grounded answer generation
+- **GitHub:** Source control and deployment integration (`master` branch)
+
+---
+
+# Production Architecture
+
+```text
+Browser
+   |
+   v
+Cloudflare Pages — static HTML/CSS/JavaScript frontend
+   |
+   | HTTPS API requests
+   v
+Render — FastAPI backend
+   |                  |                      |
+   v                  v                      v
+Neon PostgreSQL   Cloudflare R2          Gemini API
++ pgvector        document archives      embeddings / visual analysis / answers
+```
+
+- **Frontend:** [knowledgehub-ai-cum.pages.dev](https://knowledgehub-ai-cum.pages.dev)
+- **Backend:** [knowledgehub-ai-backend-696g.onrender.com](https://knowledgehub-ai-backend-696g.onrender.com)
+- **Source / production branch:** [`master`](https://github.com/phaneendrakatakam/KnowledgeHub-AI/tree/master)
+- **Database:** Neon PostgreSQL with pgvector; the deployed Render service uses the Neon branch `knowledgehub-render-test`.
+- **Object storage:** Cloudflare R2 stores uploaded document archives; application metadata, accounts, conversations, and retrieval data reside in PostgreSQL.
+- **AI:** Gemini API supports embeddings, multimodal interpretation, and grounded responses.
+
+The previous Google Cloud Run deployment has been retired. The URLs above are the current application endpoints.
+
 ---
 
 # Project Structure
 
 ```text
 KnowledgeHub-AI/
-│
 ├── backend/
-│   ├── parsers/
-│   │   ├── __init__.py
-│   │   ├── base.py
-│   │   ├── docx_parser.py
-│   │   ├── markdown_parser.py
-│   │   ├── pdf_parser.py
-│   │   └── txt_parser.py
-│   │
-│   ├── auth.py
-│   ├── db.py
-│   ├── ingest.py
-│   ├── main.py
-│   ├── process_document.py
-│   ├── rag.py
-│   ├── search.py
-│   ├── visual_analyzer.py
-│   ├── evaluate_rag.py
-│   └── evaluate_retrieval.py
-│
+│   ├── parsers/              # PDF, DOCX, Markdown and TXT parsers
+│   ├── auth.py               # Authentication and user management
+│   ├── db.py                 # PostgreSQL / database configuration
+│   ├── ingest.py             # Document ingestion
+│   ├── main.py               # FastAPI routes
+│   ├── storage.py            # Cloudflare R2 integration
+│   ├── rag.py                # RAG pipeline
+│   ├── search.py             # Retrieval
+│   └── visual_analyzer.py    # Multimodal visual analysis
 ├── frontend/
-│   └── index.html
-│
-├── screenshots/
-│   └── V3/
-│
-├── tests/
-│
-├── .env.example
-├── .gitignore
+│   ├── index.html            # Browser UI
+│   └── config.js             # Backend API endpoint configuration
+├── screenshots/V3/          # V3 evidence screenshots
+├── tests/                   # Automated tests
 ├── requirements.txt
+├── Dockerfile
 └── README.md
 ```
 
+The tree highlights important files rather than every file in the repository.
+
 ---
 
-# Setup
+# Local Development
 
-## 1. Clone the Repository
+## 1. Clone and install dependencies
 
-```bash
-git clone <your-repository-url>
+```powershell
+git clone https://github.com/phaneendrakatakam/KnowledgeHub-AI.git
 cd KnowledgeHub-AI
-```
-
-## 2. Create a Virtual Environment
-
-Windows:
-
-```bash
 python -m venv .venv
-.venv\Scripts\activate
-```
-
-macOS/Linux:
-
-```bash
-python3 -m venv .venv
-source .venv/bin/activate
-```
-
-## 3. Install Dependencies
-
-```bash
+.\.venv\Scripts\Activate.ps1
 pip install -r requirements.txt
 ```
 
-## 4. Configure Environment Variables
+For macOS/Linux, activate the environment using `source .venv/bin/activate`.
 
-Copy:
+## 2. Configure services and secrets
 
-```text
-.env.example
-```
+Create the local environment file at the location expected by the backend (see `.env.example` if present). Never commit real credentials.
 
-to:
+| Setting | Purpose |
+| --- | --- |
+| `GEMINI_API_KEY` | Gemini API authentication |
+| `DATABASE_URL` | PostgreSQL connection string (Neon or local PostgreSQL with pgvector) |
+| `POSTGRES_HOST`, `POSTGRES_PORT`, `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD` | Local PostgreSQL connection fields, when using the individual-field configuration |
+| R2 account endpoint, bucket, access key and secret | Object-storage credentials used by `backend/storage.py`; match the exact variable names in that module |
+| Authentication / session secrets | Configure according to the backend authentication code and deployment settings |
 
-```text
-backend/.env
-```
+Do not copy example values into production. The database must have the schema and extensions required by the backend; review the repository's database initialization code before first use.
 
-Then configure the required values.
+## 3. Start the backend
 
-Example:
-
-```env
-GEMINI_API_KEY=your_gemini_api_key
-GEMINI_VISUAL_MODEL=gemini-3.1-flash-lite
-
-POSTGRES_HOST=localhost
-POSTGRES_PORT=5432
-POSTGRES_DB=knowledgehub
-POSTGRES_USER=postgres
-POSTGRES_PASSWORD=your_postgres_password
-```
-
-Never commit the real `.env` file.
-
----
-
-# Running the Application
-
-From the backend directory:
-
-```bash
+```powershell
 cd backend
 uvicorn main:app --reload
 ```
 
-Then open the application frontend using the project's local frontend workflow.
+For local frontend testing, serve `frontend/` through a local static web server. `frontend/config.js` currently points to the deployed Render API; adjust the endpoint for a local backend if needed.
 
----
+## 4. Run automated tests
 
-# Running Tests
+From the repository root:
 
-From the project root:
-
-```bash
+```powershell
 pytest
 ```
 
-Final V3 validation:
+The V3 validation snapshot recorded **107 passing tests**. This is a historical V3 test result, not a claim that the latest production commit was retested with the same count.
 
-```text
-107 passed
-```
+---
+
+# Deployment Notes
+
+## Cloudflare Pages — frontend
+
+- **Project:** `knowledgehub-ai`
+- **Production branch:** `master`
+- **Build output directory:** `frontend`
+- **Live URL:** https://knowledgehub-ai-cum.pages.dev
+- The frontend is static HTML/CSS/JavaScript; its API base URL is configured in `frontend/config.js`.
+- Pushing a change to `master` can trigger a new Pages production deployment. Check the deployment status in the Cloudflare dashboard.
+
+## Render — FastAPI backend
+
+- **Service:** `knowledgehub-ai-backend`
+- **Production branch:** `master`
+- **Live base URL:** https://knowledgehub-ai-backend-696g.onrender.com
+- The backend runs as a Render service with dependencies from `requirements.txt` and production configuration supplied through Render environment settings.
+- Configure `DATABASE_URL`, Gemini credentials, R2 credentials, and any authentication settings required by the application in the Render dashboard. Do not store secrets in Git.
+- When the free instance is idle, the first request may take longer because the service may need to wake up.
+- Confirm the actual build/start commands in the Render service settings before reproducing this deployment; do not assume the local development command is the production start command.
+
+## Neon — PostgreSQL + pgvector
+
+- The live Render service connects to Neon using `DATABASE_URL`.
+- The currently deployed database branch is `knowledgehub-render-test` (a separate branch from Neon's original `production` branch).
+- Preserve the branch used by Render. Deleting or replacing it without updating the Render connection string will break database access.
+- Database branches and backups should be managed independently of Git branches.
+
+## Cloudflare R2 — uploaded document archives
+
+- R2 provides durable object storage for document archives, separate from the ephemeral filesystem of the backend host.
+- Configure the R2 bucket, endpoint, and credentials through backend environment settings.
+- Use least-privilege credentials and keep the bucket private unless a specific public-access use case requires otherwise.
+- Validate upload, retrieval, and document deletion behavior after changing storage settings.
+
+## Deployment verification checklist
+
+1. Verify Cloudflare Pages and Render show successful production deployments from `master`.
+2. Open the live frontend and sign in.
+3. Upload a small supported document and verify it appears in the user's knowledge base.
+4. Ask a document-grounded question and check its supporting sources.
+5. Refresh and verify the conversation remains available.
+6. Check the Render logs and storage/database dashboards if any request fails.
+
+The application passed a final manual end-to-end live test after the hosting migration. This does not replace ongoing security, performance, and load testing.
+
+## Operations and free-tier considerations
+
+- Render free-tier instances may sleep when idle, causing cold-start latency.
+- Neon, R2, Cloudflare Pages, Render, and Gemini have independent usage limits and billing policies; check their dashboards for current limits.
+- Do not rely on Render's local filesystem for persistent user uploads.
+- Keep credentials in service environment settings; rotate them if exposed.
+- Maintain database backups or a tested recovery procedure before storing irreplaceable data.
+- A Git push can redeploy application code but does not automatically migrate or back up the database.
 
 ---
 
@@ -493,261 +528,42 @@ Final V3 validation:
 
 ## V1 — Core RAG Pipeline
 
-The first version focused on understanding the complete RAG workflow:
-
-- PDF ingestion
-- Text extraction
-- Chunking
-- Gemini embeddings
-- PostgreSQL + pgvector
-- Vector similarity search
-- Grounded answer generation
-- Source display
-- Basic relevance rejection
-- Multiple chat sessions
-- Automated testing
-
----
+The first version introduced PDF ingestion, text extraction, chunking, Gemini embeddings, PostgreSQL/pgvector similarity search, grounded answer generation, source display, relevance rejection, chat sessions, and automated tests.
 
 ## V2 — Reliability and Conversational RAG
 
-V2 focused on making the RAG application more transparent and reliable.
-
-Major improvements included:
-<<<<<<< HEAD
-=======
-
-- Multi-document knowledge base
-- Conversational follow-up questions
-- Sources & Context inspection
-- Developer-oriented retrieval visibility
-- Improved grounded rejection behavior
-- Expanded RAG evaluation and automated testing
-
----
+V2 introduced a multi-document knowledge base, conversational follow-ups, Sources & Context inspection, retrieval visibility, stronger grounded rejection, and expanded evaluation and tests.
 
 ## V3 — Multi-User Multimodal Knowledge Workspace
 
-V3 expands the project significantly:
+V3 added authentication, roles, admin user management, user-specific knowledge bases, cross-user retrieval isolation, multi-format parsers, multimodal visual understanding, hybrid retrieval and reranking, richer source metadata, and expanded test coverage (**107 passing tests at the V3 validation milestone**).
 
-- Authentication
-- User roles
-- Admin user management
-- User-specific knowledge bases
-- Cross-user retrieval isolation
-- Multi-format parsers
-- Multimodal visual understanding
-- Chart reasoning
-- Flowchart understanding
-- Architecture-diagram understanding
-- Hybrid semantic + lexical retrieval
-- Wider candidate retrieval and reranking
-- Improved conversational retrieval
-- Source metadata
-- Production-oriented robustness testing
-- **107 passing automated tests**
+## Deployment milestone
 
-V3 represents the transition from a basic RAG application into a more complete document intelligence and knowledge-workspace system.
+The completed V3 application was subsequently migrated from Google Cloud Run to a multi-service deployment using Cloudflare Pages, Render, Neon PostgreSQL, and Cloudflare R2. The original Cloud Run service was retired after the new deployment passed live verification.
 
 ---
 
 # Key Engineering Lessons
 
-Building KnowledgeHub across three versions highlighted several important RAG engineering lessons.
-
-### Retrieval quality matters as much as generation
-
-A capable language model cannot answer correctly if the relevant evidence never reaches the generation stage.
-
-### Vector similarity alone is not always enough
-
-Semantically related passages can outrank passages containing the exact information required by the question.
-
-Hybrid retrieval helps combine semantic understanding with lexical evidence.
-
-### Candidate retrieval and final context are different problems
-
-Retrieving a larger candidate pool does not mean sending every candidate to the LLM.
-
-A better architecture is:
-
-```text
-Broad Retrieval
-      ↓
-Reranking
-      ↓
-Evidence Selection
-      ↓
-Grounded Generation
-```
-
-### Documents are not only text
-
-Important information frequently exists inside charts, diagrams, flowcharts, and other visual elements.
-
-A useful document intelligence system therefore needs to understand both textual and visual evidence.
-
-### Grounded rejection is a feature
-
-Knowing when the documents **do not contain an answer** is as important as answering when they do.
-
-### Multi-user RAG requires retrieval isolation
-
-Authentication alone is insufficient.
-
-Document search itself must be scoped so one user's private knowledge cannot become retrieval context for another user.
+- **Retrieval quality matters as much as generation:** an LLM cannot use evidence that retrieval never finds.
+- **Hybrid retrieval helps:** semantic similarity and exact terminology offer complementary signals.
+- **Candidate retrieval differs from final context selection:** retrieve broadly, rerank, then supply focused evidence.
+- **Documents are not only text:** charts, diagrams, and scanned visuals can carry essential facts.
+- **Grounded rejection is a feature:** when the documents do not support a claim, the system should say so.
+- **Multi-user RAG needs retrieval isolation:** authentication alone does not prevent cross-user evidence leakage.
+- **Deployment architecture matters:** persistent database and object storage should be decoupled from stateless application hosting.
 
 ---
 
-# Current Status
+# Current Status and Limitations
 
-**KnowledgeHub AI V3 — Complete**
+**KnowledgeHub AI V3 is implemented and publicly deployed.** The live workflow has been manually verified, including authentication, document upload, question answering, and conversation persistence.
 
-- V3 implementation complete
-- Authentication and multi-user isolation implemented
-- Multimodal document understanding implemented
-- Hybrid retrieval implemented
-- Manual smoke testing completed
-- **107 automated tests passing**
-
-- ---
-
-# Current Limitations
-
-KnowledgeHub AI V3 is a portfolio-focused implementation rather than a fully production-deployed SaaS platform.
-
-Current limitations include:
-
-- The application currently runs as a local development deployment rather than a publicly hosted production service.
-- Authentication is application-managed and does not currently include external identity providers such as Google or Microsoft OAuth.
-- Document ingestion currently supports PDF, DOCX, Markdown, and TXT rather than every possible enterprise document format.
-- Multimodal understanding depends on the quality of visual extraction and model interpretation, so highly complex or low-quality document visuals may still be challenging.
-- Hybrid retrieval uses a manually designed semantic/lexical scoring strategy rather than a dedicated learned reranking model.
-- Retrieval thresholds and scoring weights are currently application-level configuration choices rather than dynamically calibrated values.
-- The system does not yet include enterprise-scale capabilities such as distributed ingestion workers, object storage, centralized observability, rate limiting, or horizontal scaling.
-- Automated tests and manual smoke tests provide strong local validation, but production load and large-scale concurrency testing have not yet been performed.
-
-These limitations define potential directions for future versions rather than being hidden behind the current feature set.
-
----
-
-# Future Improvements
-
-Potential next steps include:
-
-- Production deployment and containerization
-- OAuth / enterprise identity integration
-- Dedicated reranking models
-- Additional document formats
-- Background ingestion queues
-- Object-storage integration
-- Retrieval and LLM observability
-- Rate limiting and production security hardening
-- Larger-scale retrieval evaluation datasets
-- Performance and load testing
-- Streaming answer generation
-- More advanced multimodal document reasoning
+It remains a portfolio-focused engineering project, not an enterprise-scale SaaS offering. Limitations and future work include external OAuth/SSO, background ingestion queues, dedicated learned reranking, more document formats, centralized observability, rate limiting and security hardening, load/concurrency testing, streaming responses, and more advanced multimodal evaluation. Visual understanding remains sensitive to source-document quality; retrieval scoring and thresholds are application-defined.
 
 ---
 
 # Author
->>>>>>> 27f49faadf6a73f17cc5bf165ed3a408e78a3bc4
 
-- Multi-document knowledge base
-- Conversational follow-up questions
-- Sources & Context inspection
-- Developer-oriented retrieval visibility
-- Improved grounded rejection behavior
-- Expanded RAG evaluation and automated testing
-
-<<<<<<< HEAD
----
-
-## V3 — Multi-User Multimodal Knowledge Workspace
-
-V3 expands the project significantly:
-
-- Authentication
-- User roles
-- Admin user management
-- User-specific knowledge bases
-- Cross-user retrieval isolation
-- Multi-format parsers
-- Multimodal visual understanding
-- Chart reasoning
-- Flowchart understanding
-- Architecture-diagram understanding
-- Hybrid semantic + lexical retrieval
-- Wider candidate retrieval and reranking
-- Improved conversational retrieval
-- Source metadata
-- Production-oriented robustness testing
-- **107 passing automated tests**
-
-V3 represents the transition from a basic RAG application into a more complete document intelligence and knowledge-workspace system.
-
----
-
-# Key Engineering Lessons
-
-Building KnowledgeHub across three versions highlighted several important RAG engineering lessons.
-
-### Retrieval quality matters as much as generation
-
-A capable language model cannot answer correctly if the relevant evidence never reaches the generation stage.
-
-### Vector similarity alone is not always enough
-
-Semantically related passages can outrank passages containing the exact information required by the question.
-
-Hybrid retrieval helps combine semantic understanding with lexical evidence.
-
-### Candidate retrieval and final context are different problems
-
-Retrieving a larger candidate pool does not mean sending every candidate to the LLM.
-
-A better architecture is:
-
-```text
-Broad Retrieval
-      ↓
-Reranking
-      ↓
-Evidence Selection
-      ↓
-Grounded Generation
-```
-
-### Documents are not only text
-
-Important information frequently exists inside charts, diagrams, flowcharts, and other visual elements.
-
-A useful document intelligence system therefore needs to understand both textual and visual evidence.
-
-### Grounded rejection is a feature
-
-Knowing when the documents **do not contain an answer** is as important as answering when they do.
-
-### Multi-user RAG requires retrieval isolation
-
-Authentication alone is insufficient.
-
-Document search itself must be scoped so one user's private knowledge cannot become retrieval context for another user.
-
----
-
-# Current Status
-
-**KnowledgeHub AI V3 — Complete**
-
-- V3 implementation complete
-- Authentication and multi-user isolation implemented
-- Multimodal document understanding implemented
-- Hybrid retrieval implemented
-- Manual smoke testing completed
-- **107 automated tests passing**
-=======
-Cloud / DevOps Engineer exploring the intersection of **AI engineering, RAG systems, cloud infrastructure, and forward-deployed engineering**.
-
-KnowledgeHub AI was built as a hands-on engineering project to understand how reliable AI applications behave beyond a simple LLM demo — including retrieval quality, grounding, multimodal document understanding, authentication, user isolation, failure handling, and testing.
->>>>>>> 27f49faadf6a73f17cc5bf165ed3a408e78a3bc4
+**Phaneendra Katakam** — Cloud / DevOps engineer exploring AI engineering, retrieval-augmented generation, cloud infrastructure, and practical deployment workflows.
