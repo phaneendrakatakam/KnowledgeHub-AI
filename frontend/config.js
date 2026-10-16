@@ -1,3 +1,2 @@
-﻿// KnowledgeHub API endpoint.
-// Replace the empty value with the Render backend URL during deployment.
-window.KNOWLEDGEHUB_API_URL = "";
+﻿// KnowledgeHub AI backend endpoint.
+window.KNOWLEDGEHUB_API_URL = "https://knowledgehub-ai-backend-696g.onrender.com";
